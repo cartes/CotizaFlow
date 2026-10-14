@@ -16,12 +16,12 @@ trait CreatesTenant
         $tenant = Tenant::firstOrCreate(
             ['rut_taller' => '12345678-9'],
             [
-                'name' => 'Taller Test',
-                'slug' => 'taller-test',
-                'domain' => 'test.tallerflow.test',
+                'name' => 'Empresa Test',
+                'slug' => 'empresa-test',
+                'domain' => 'test.cotizaflow.test',
                 'comuna' => 'Santiago',
                 'phone' => '+56912345678',
-                'seo_description' => 'Taller de pruebas.',
+                'seo_description' => 'Empresa de pruebas.',
             ]
         );
 

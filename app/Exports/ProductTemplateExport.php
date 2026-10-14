@@ -11,60 +11,18 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 
 class ProductTemplateExport implements FromArray, ShouldAutoSize, WithHeadings, WithTitle
 {
-    /**
-     * @return array<int, array<int, string|int>>
-     */
     public function array(): array
     {
-        return [
-            [
-                'SKU-FA-100',
-                'Filtro de aceite',
-                'Filtros',
-                'repuesto_nacional',
-                'Filtro de aceite para mantencion general',
-                5000,
-                9990,
-                'con_iva',
-                12,
-                3,
-            ],
-            [
-                'SKU-BUJ-200',
-                'Bujia iridium',
-                'Encendido',
-                'repuesto_internacional',
-                'Bujia de alto rendimiento',
-                8500,
-                14990,
-                'mas_iva',
-                8,
-                2,
-            ],
-        ];
+        return [['PROD-001', 'Cuaderno', 'Papelería', 'Cuaderno tamaño carta', 2000, 3500, 'mas_iva']];
     }
 
-    /**
-     * @return array<int, string>
-     */
     public function headings(): array
     {
-        return [
-            'sku',
-            'nombre',
-            'categoria',
-            'tipo',
-            'descripcion',
-            'costo',
-            'precio_venta',
-            'impuesto',
-            'stock',
-            'stock_minimo',
-        ];
+        return ['sku', 'nombre', 'categoria', 'descripcion', 'costo', 'precio_venta', 'impuesto'];
     }
 
     public function title(): string
     {
-        return 'Repuestos';
+        return 'Productos';
     }
 }

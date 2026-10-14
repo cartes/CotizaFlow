@@ -11,37 +11,6 @@ class TenantSeeder extends Seeder
 {
     public function run(): void
     {
-        $database = config('database.connections.mysql.database');
-
-        $talleres = [
-            [
-                'name' => 'Taller Automotriz Cartes',
-                'slug' => 'cartes',
-                'domain' => 'cartes',
-                'database' => $database,
-                'rut_taller' => '76.543.210-1',
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Full Mantenciones',
-                'slug' => 'full-mantenciones',
-                'domain' => 'full-mantenciones',
-                'database' => $database,
-                'rut_taller' => '76.543.210-2',
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Medelauto Servicio Automotriz',
-                'slug' => 'medelauto',
-                'domain' => 'medelauto',
-                'database' => $database,
-                'rut_taller' => '76.543.210-3',
-                'is_active' => true,
-            ],
-        ];
-
-        foreach ($talleres as $taller) {
-            Tenant::create($taller);
-        }
+        Tenant::firstOrCreate(['slug' => 'demo'], ['name' => 'Empresa Demo', 'domain' => 'demo', 'database' => config('database.connections.sqlite.database'), 'rut_taller' => null, 'is_active' => true]);
     }
 }

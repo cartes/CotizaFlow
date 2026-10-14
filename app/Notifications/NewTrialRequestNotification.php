@@ -31,9 +31,9 @@ class NewTrialRequestNotification extends Notification
         $tr = $this->trialRequest;
 
         return (new MailMessage)
-            ->subject('[Taller Flow] Nueva solicitud de prueba — '.$tr->business_name)
-            ->greeting('¡Nuevo taller interesado!')
-            ->line('Se ha registrado una nueva solicitud de prueba gratuita en la plataforma.')
+            ->subject('[CotizaFlow] Nueva solicitud de prueba — '.$tr->business_name)
+            ->greeting('¡Nueva empresa interesada!')
+            ->line('Se ha registrado una nueva solicitud de acceso en la plataforma.')
             ->line("**Negocio:** {$tr->business_name}")
             ->line("**Rubro:** {$tr->business_type}")
             ->line("**Contacto:** {$tr->name}")
@@ -43,7 +43,7 @@ class NewTrialRequestNotification extends Notification
             ->line('**Plan solicitado:** '.($tr->requested_plan ?: 'No especificado'))
             ->line('**Estimación de usuarios:** '.($tr->users_estimate ?? 'No indicada'))
             ->when(filled($tr->message), fn (MailMessage $mail) => $mail->line("**Mensaje:** {$tr->message}"))
-            ->action('Ver solicitudes de prueba', route('admin.trial-requests.index'))
+            ->action('Abrir administración', route('admin.dashboard'))
             ->line('Recuerda revisar la solicitud para aprobarla o rechazarla.');
     }
 

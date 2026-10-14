@@ -1,16 +1,20 @@
 <script setup>
-defineProps({
-    alt: {
-        type: String,
-        default: 'Taller Flow',
-    },
-});
+defineProps({ alt: { type: String, default: 'CotizaFlow' } });
 </script>
-
 <template>
-    <img
-        src="/images/taller-flow-isotipo.png"
-        :alt="alt"
-        class="block"
+    <svg
+        viewBox="0 0 48 48"
+        role="img"
+        :aria-label="alt"
+        xmlns="http://www.w3.org/2000/svg"
     >
+        <rect width="48" height="48" rx="14" fill="#ff7a00" />
+        <path d="M14 12h14l7 7v17H14z" fill="white" />
+        <path
+            d="M20 23h10M20 29h7"
+            stroke="#ff7a00"
+            stroke-width="3"
+            stroke-linecap="round"
+        />
+    </svg>
 </template>

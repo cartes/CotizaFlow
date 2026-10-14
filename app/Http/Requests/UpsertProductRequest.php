@@ -40,13 +40,10 @@ class UpsertProductRequest extends FormRequest
                 Rule::exists('product_categories', 'id')
                     ->where(fn ($q) => $tenantId ? $q->where('tenant_id', $tenantId) : $q),
             ],
-            'type' => ['nullable', 'string', 'in:repuesto_nacional,repuesto_internacional,insumo'],
             'description' => ['nullable', 'string'],
             'cost_price' => ['required', 'numeric', 'min:0'],
             'selling_price' => ['required', 'numeric', 'min:0'],
             'tax_included' => ['nullable', 'boolean'],
-            'physical_stock' => ['required', 'integer', 'min:0'],
-            'min_stock' => ['required', 'integer', 'min:0'],
         ];
     }
 
@@ -56,7 +53,7 @@ class UpsertProductRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'sku.unique' => 'Ya existe un repuesto con este SKU.',
+            'sku.unique' => 'Ya existe un producto con este código.',
         ];
     }
 }

@@ -1,146 +1,145 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
-import ActionEmptyState from '@/Components/ActionEmptyState.vue';
+import { ref } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import TallerLayout from '@/Layouts/TallerLayout.vue';
-import { useTenantRouting } from '@/composables/useTenantRouting';
-import { useFormatting } from '@/composables/useFormatting';
-import { useStatusConfig } from '@/composables/useStatusConfig';
-import { useDebounce } from '@/composables/useDebounce';
-import { useIdentification } from '@/composables/useIdentification';
-
 const props = defineProps({
     quotes: Object,
     filters: Object,
-    quoteStatuses: Array,
+    followUp: { type: Boolean, default: false },
 });
-
-const { page, tenantRouteParams } = useTenantRouting();
-const { formatCurrency, formatDate } = useFormatting();
-const { resolveQuoteStatus } = useStatusConfig();
-const { debounce } = useDebounce();
-const { getCountryConfig } = useIdentification();
-
-const tenantCountry = computed(() => page.props.tenantContext?.country || 'CL');
-const countryConfig = computed(() => getCountryConfig(tenantCountry.value));
-const docLabel = computed(() => countryConfig.value.docName);
-
-const planAccess = computed(() => page.props.planAccess ?? null);
-const commercialQuotesEnabled = computed(() => planAccess.value?.commercial_quotes_enabled ?? false);
-
+const page = usePage();
+const params = { tenantBySlug: page.props.tenant?.slug };
 const search = ref(props.filters?.search || '');
-
-watch(search, debounce((value) => {
-    router.get(route('quotes.index', tenantRouteParams.value), { search: value }, {
-        preserveState: true,
-        replace: true,
-    });
-}, 300));
+const labels = {
+    draft: 'Borrador',
+    pending_customer: 'Pendiente',
+    accepted: 'Aceptada',
+    rejected: 'Rechazada',
+};
+const money = (value) =>
+    new Intl.NumberFormat('es-CL', {
+        style: 'currency',
+        currency: 'CLP',
+    }).format(Number(value));
+const canManage =
+    page.props.auth.user.is_super_admin ||
+    page.props.auth.user.permissions.includes('quotes.manage');
+const days = (date) =>
+    date
+        ? Math.max(
+              0,
+              Math.floor((Date.now() - new Date(date).getTime()) / 86400000),
+          )
+        : 0;
 </script>
-
 <template>
-    <Head title="Cotizaciones" />
-
-    <TallerLayout>
-        <div class="space-y-8">
-            <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                <div>
-                    <h1 class="text-3xl font-black uppercase tracking-tight text-gray-900">Cotizaciones</h1>
-                    <p class="mt-1 text-sm font-medium text-gray-500">Cotiza a clientes sin necesidad de una cita ni una Orden de Trabajo previa.</p>
-                </div>
-
-                <div class="flex w-full flex-col gap-4 sm:flex-row md:w-auto">
-                    <div class="relative w-full sm:w-80" data-tour="quotes-search">
-                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                            <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
-                        <input v-model="search" type="text" :placeholder="'Buscar por cliente, ' + docLabel + ' o patente...'"
-                            class="w-full rounded-2xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm font-medium text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:border-[#FF7A00] focus:outline-none focus:ring-2 focus:ring-[#FF7A00]/50" />
-                    </div>
-
-                    <Link
-                        v-if="commercialQuotesEnabled"
-                        :href="route('quotes.create', tenantRouteParams)"
-                        data-tour="quotes-new"
-                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-gray-900 px-5 py-3 text-sm font-black text-white shadow-sm transition-colors hover:bg-[#FF7A00]"
-                    >
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                        Nueva Cotización
-                    </Link>
-                </div>
+    <TallerLayout
+        ><Head :title="followUp ? 'Seguimiento' : 'Cotizaciones'" />
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold">
+                    {{ followUp ? 'Seguimiento comercial' : 'Cotizaciones' }}
+                </h1>
+                <p class="mt-2 text-slate-500">
+                    {{
+                        followUp
+                            ? 'Cotizaciones que esperan respuesta, ordenadas desde la más antigua.'
+                            : 'Prepara y consulta las propuestas para tus clientes.'
+                    }}
+                </p>
             </div>
-
-            <div v-if="commercialQuotesEnabled" class="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-sm">
-                <ActionEmptyState
-                    v-if="quotes.data.length === 0"
-                    :title="search ? 'No encontramos cotizaciones con esa búsqueda' : 'Aún no tienes cotizaciones'"
-                    :description="search ? 'Prueba con otro cliente o patente, o limpia la búsqueda.' : 'Crea la primera cotización usando un cliente y vehículo registrados, o agrega sus datos durante el proceso.'"
-                    :action-label="search ? 'Limpiar búsqueda' : 'Crear mi primera cotización'"
-                    :action-href="search ? null : route('quotes.create', tenantRouteParams)"
-                    @action="search = ''"
-                />
-
-                <div v-else class="overflow-x-auto">
-                    <table class="w-full border-collapse text-left">
-                        <thead>
-                            <tr class="border-b border-gray-100 bg-gray-50/50 text-[10px] font-black uppercase tracking-widest text-gray-400">
-                                <th class="px-6 py-4">Cliente</th>
-                                <th class="px-6 py-4">Vehículo</th>
-                                <th class="px-6 py-4">Estado</th>
-                                <th class="px-6 py-4">Total</th>
-                                <th class="px-6 py-4">Creada</th>
-                                <th class="px-6 py-4 text-right">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-50">
-                            <tr v-for="quote in quotes.data" :key="quote.id" class="group transition-colors hover:bg-gray-50/40">
-                                <td class="px-6 py-4 align-top">
-                                    <div class="text-sm font-bold uppercase text-gray-900">{{ quote.client?.name ?? 'Sin cliente' }}</div>
-                                    <div class="text-xs font-semibold uppercase tracking-widest text-gray-400">{{ quote.client?.rut }}</div>
-                                </td>
-                                <td class="px-6 py-4 align-top text-sm text-gray-600">
-                                    <span class="font-mono font-bold tracking-widest text-gray-700">{{ quote.vehicle?.plate }}</span>
-                                    <p class="text-xs text-gray-400">{{ quote.vehicle?.brand }} {{ quote.vehicle?.model }}</p>
-                                </td>
-                                <td class="px-6 py-4 align-top">
-                                    <span :class="['inline-flex items-center rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-widest', resolveQuoteStatus(quote.status).classes]">
-                                        {{ resolveQuoteStatus(quote.status).label }}
-                                    </span>
-                                    <p v-if="quote.work_order" class="mt-1 text-[10px] font-semibold uppercase tracking-widest text-emerald-500">OT #{{ quote.work_order.id }} generada</p>
-                                </td>
-                                <td class="px-6 py-4 align-top text-sm font-black text-gray-900">{{ formatCurrency(quote.total_amount || quote.subtotal_amount) }}</td>
-                                <td class="px-6 py-4 align-top text-sm font-medium text-gray-600">{{ formatDate(quote.created_at) }}</td>
-                                <td class="px-6 py-4 text-right align-top">
-                                    <Link :href="route('quotes.show', { ...tenantRouteParams, quote: quote.id })"
-                                        class="inline-flex items-center justify-center rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-gray-600 transition-colors hover:bg-[#FF7A00] hover:text-white">
-                                        Ver Detalle
-                                    </Link>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div v-if="quotes.links && quotes.links.length > 3"
-                    class="flex flex-wrap items-center justify-center gap-1 border-t border-gray-100 px-6 py-4">
-                    <template v-for="(link, i) in quotes.links" :key="i">
-                        <Link v-if="link.url" :href="link.url" v-html="link.label"
-                            class="rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
-                            :class="link.active ? 'bg-[#FF7A00] text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'" />
-                        <span v-else v-html="link.label" class="px-3 py-1.5 text-sm font-medium text-gray-400"></span>
-                    </template>
-                </div>
-            </div>
-
-            <div v-else class="rounded-2xl border border-dashed border-orange-200 bg-orange-50/70 p-8">
-                <span class="inline-flex rounded-full bg-white px-3 py-1 text-[10px] font-black uppercase tracking-widest text-orange-600">Upgrade</span>
-                <h2 class="mt-4 text-2xl font-black tracking-tight text-gray-900">Cotizaciones manuales bloqueadas para este plan</h2>
-                <p class="mt-2 text-sm font-medium text-gray-600">{{ planAccess?.upgrade_messages?.commercial_quotes_enabled }}</p>
-            </div>
+            <Link
+                v-if="canManage"
+                :href="route('quotes.create', params)"
+                class="rounded-xl bg-orange-500 px-5 py-3 font-semibold text-white"
+                >Nueva cotización</Link
+            >
         </div>
-    </TallerLayout>
+        <nav class="cf-section-tabs" aria-label="Vistas de cotización">
+            <Link
+                :href="route('quotes.index', params)"
+                :class="{ 'is-selected': !followUp }"
+                :aria-current="!followUp ? 'page' : undefined"
+                >Todas las cotizaciones</Link
+            ><Link
+                :href="route('quotes.follow-up', params)"
+                :class="{ 'is-selected': followUp }"
+                :aria-current="followUp ? 'page' : undefined"
+                >Pendientes de respuesta</Link
+            >
+        </nav>
+        <form
+            v-if="!followUp"
+            @submit.prevent="
+                router.get(route('quotes.index', params), { search })
+            "
+            class="my-6 flex gap-3"
+        >
+            <input
+                v-model="search"
+                aria-label="Buscar cotizaciones"
+                placeholder="Buscar por cliente o RUT"
+                class="w-full max-w-md rounded-lg border-slate-300"
+            /><button class="rounded-lg bg-slate-900 px-5 text-white">
+                Buscar
+            </button>
+        </form>
+        <div
+            class="mt-6 overflow-x-auto rounded-2xl border border-slate-200 bg-white"
+        >
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="p-4">Número</th>
+                        <th class="p-4">Cliente</th>
+                        <th class="p-4">Estado</th>
+                        <th v-if="followUp" class="p-4">Días pendiente</th>
+                        <th class="p-4">Total</th>
+                        <th class="p-4">Detalle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        v-for="quote in quotes.data"
+                        :key="quote.id"
+                        class="border-t border-slate-100"
+                    >
+                        <td class="p-4">#{{ quote.id }}</td>
+                        <td class="p-4">{{ quote.client?.name }}</td>
+                        <td class="p-4">{{ labels[quote.status] }}</td>
+                        <td v-if="followUp" class="p-4">
+                            {{ days(quote.sent_at) }}
+                        </td>
+                        <td class="p-4">{{ money(quote.total_amount) }}</td>
+                        <td class="p-4">
+                            <Link
+                                :href="
+                                    route('quotes.show', {
+                                        ...params,
+                                        quote: quote.id,
+                                    })
+                                "
+                                class="font-medium text-orange-600"
+                                >Abrir</Link
+                            >
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p v-if="!quotes.data.length" class="p-8 text-slate-500">
+                {{
+                    followUp
+                        ? 'No hay cotizaciones pendientes de respuesta.'
+                        : 'Aún no hay cotizaciones para mostrar.'
+                }}
+            </p>
+        </div>
+        <div class="mt-5 flex gap-4">
+            <Link v-if="quotes.prev_page_url" :href="quotes.prev_page_url"
+                >← Anterior</Link
+            ><Link v-if="quotes.next_page_url" :href="quotes.next_page_url"
+                >Siguiente →</Link
+            >
+        </div></TallerLayout
+    >
 </template>

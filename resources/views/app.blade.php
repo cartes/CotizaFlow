@@ -4,7 +4,7 @@
         $seo = $page['props']['seo'] ?? null;
         $seoTitle = is_array($seo) && filled($seo['title'] ?? null)
             ? $seo['title']
-            : config('app.name', 'Laravel');
+            : config('app.name', 'CotizaFlow');
         $seoDescription = is_array($seo) ? ($seo['description'] ?? null) : null;
         $seoImage = is_array($seo) ? ($seo['og_image'] ?? null) : null;
         $seoImageAlt = is_array($seo) ? ($seo['og_image_alt'] ?? $seoTitle) : null;
@@ -86,12 +86,9 @@
             @endif
         @endforeach
 
-        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
-        <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
-        <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
-        @if (($page['component'] ?? null) === 'Welcome')
-            <link rel="preload" as="image" href="{{ asset('images/car-hero.webp') }}" fetchpriority="high">
-        @endif
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
 
         <!-- Scripts -->
         @if (request()->routeIs('admin.*'))

@@ -6,8 +6,9 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
 import { route as ziggyRoute, ZiggyVue } from '../../vendor/tightenco/ziggy';
 
-const appName = import.meta.env.VITE_APP_NAME || 'TallerFlow';
-let rememberedTenantSlug = window.history.state?.page?.props?.tenant?.slug || null;
+const appName = import.meta.env.VITE_APP_NAME || 'CotizaFlow';
+let rememberedTenantSlug =
+    window.history.state?.page?.props?.tenant?.slug || null;
 
 const routeParameterNames = (routeName) => {
     const uri = window.Ziggy?.routes?.[routeName]?.uri || '';
@@ -16,16 +17,17 @@ const routeParameterNames = (routeName) => {
 };
 
 const tenantSlugFromPath = (path) => {
-    const tenantPathMatch = path.match(/^\/taller\/([^/]+)/);
+    const tenantPathMatch = path.match(/^\/empresa\/([^/]+)/);
 
     return tenantPathMatch?.[1] ? decodeURIComponent(tenantPathMatch[1]) : null;
 };
 
 const rememberTenantSlug = (page = null) => {
-    rememberedTenantSlug = page?.props?.tenant?.slug
-        || tenantSlugFromPath(page?.url || '')
-        || tenantSlugFromPath(window.location.pathname)
-        || rememberedTenantSlug;
+    rememberedTenantSlug =
+        page?.props?.tenant?.slug ||
+        tenantSlugFromPath(page?.url || '') ||
+        tenantSlugFromPath(window.location.pathname) ||
+        rememberedTenantSlug;
 };
 
 const currentTenantSlug = () => {
@@ -41,7 +43,12 @@ const withTenantRouteDefault = (routeName, params) => {
         return params;
     }
 
-    if (params && !Array.isArray(params) && typeof params === 'object' && Object.prototype.hasOwnProperty.call(params, 'tenantBySlug')) {
+    if (
+        params &&
+        !Array.isArray(params) &&
+        typeof params === 'object' &&
+        Object.prototype.hasOwnProperty.call(params, 'tenantBySlug')
+    ) {
         return params;
     }
 
@@ -66,12 +73,13 @@ const withTenantRouteDefault = (routeName, params) => {
     return { tenantBySlug: tenantSlug, ...params };
 };
 
-const routeWithTenantDefaults = (routeName, params, absolute, config) => ziggyRoute(
-    routeName,
-    withTenantRouteDefault(routeName, params),
-    absolute,
-    config,
-);
+const routeWithTenantDefaults = (routeName, params, absolute, config) =>
+    ziggyRoute(
+        routeName,
+        withTenantRouteDefault(routeName, params),
+        absolute,
+        config,
+    );
 
 window.route = routeWithTenantDefaults;
 router.on('beforeUpdate', rememberTenantSlug);
@@ -102,7 +110,21 @@ createInertiaApp({
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.vue`,
-            import.meta.glob('./Pages/**/*.vue'),
+            import.meta.glob([
+                './Pages/Welcome.vue',
+                './Pages/Pricing.vue',
+                './Pages/Servicios.vue',
+                './Pages/Dashboard.vue',
+                './Pages/Quotes/*.vue',
+                './Pages/Clients/*.vue',
+                './Pages/Inventory/Index.vue',
+                './Pages/Services/Index.vue',
+                './Pages/Settings/Index.vue',
+                './Pages/Trial/*.vue',
+                './Pages/Profile/**/*.vue',
+                './Pages/Auth/*.vue',
+                './Pages/Admin/Dashboard.vue',
+            ]),
         ),
     setup({ el, App, props, plugin }) {
         const vueApp = createApp({ render: () => h(App, props) })

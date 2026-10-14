@@ -7,7 +7,6 @@ namespace App\Services;
 use App\Models\Quote;
 use App\Models\QuoteItem;
 use App\Models\TenantNotification;
-use App\Models\WorkOrder;
 
 class ManualQuoteService
 {
@@ -20,7 +19,6 @@ class ManualQuoteService
     {
         return Quote::create([
             'client_id' => $data['client_id'],
-            'vehicle_id' => $data['vehicle_id'],
             'notes' => $data['notes'] ?? null,
             'status' => Quote::STATUS_DRAFT,
         ]);
@@ -65,7 +63,7 @@ class ManualQuoteService
         );
     }
 
-    public function approveManually(Quote $quote, string $channel): WorkOrder
+    public function approveManually(Quote $quote, string $channel): void
     {
         $quote->update([
             'status' => Quote::STATUS_ACCEPTED,
@@ -83,10 +81,9 @@ class ManualQuoteService
             'channel' => $channel,
         ]);
 
-        return $this->convertToWorkOrder($quote);
     }
 
-    public function respondPublicly(Quote $quote, string $decision, ?string $notes): ?WorkOrder
+    public function respondPublicly(Quote $quote, string $decision, ?string $notes): void
     {
         $status = $decision === 'accepted'
             ? Quote::STATUS_ACCEPTED
@@ -108,11 +105,6 @@ class ManualQuoteService
 
         $this->notifyTenantOfCustomerResponse($quote, $status);
 
-        if ($status === Quote::STATUS_ACCEPTED) {
-            return $this->convertToWorkOrder($quote);
-        }
-
-        return null;
     }
 
     /**
@@ -120,68 +112,28 @@ class ManualQuoteService
      */
     public function buildWhatsAppMessage(Quote $quote): string
     {
-        $quote->loadMissing(['client', 'vehicle', 'tenant']);
-
+        $quote->loadMissing(['client', 'tenant']);
         $clientName = $quote->client?->name ?? 'cliente';
-        $vehicle = trim(($quote->vehicle?->brand ?? '').' '.($quote->vehicle?->model ?? ''));
-        $plate = $quote->vehicle?->plate;
-        $vehicleLabel = trim($vehicle.($plate ? " ({$plate})" : ''));
-        $tenantName = $quote->tenant?->name ?? 'tu taller';
-        $total = number_format((float) $quote->total_amount, 0, ',', '.');
+        $company = $quote->tenant?->name ?? config('app.name');
         $url = route('quotes.public.show', ['uuid' => $quote->uuid]);
 
-        return "Hola {$clientName}, soy de {$tenantName}. Tu cotización".($vehicleLabel !== '' ? " para {$vehicleLabel}" : '')
-            ." está lista: total \${$total}.\n\nRevísala y apruébala con un toque aquí:\n{$url}";
+        return "Hola {$clientName}, soy de {$company}. Puedes revisar y responder tu cotización aquí: {$url}";
     }
 
     private function notifyTenantOfCustomerResponse(Quote $quote, string $status): void
     {
-        $accepted = $status === Quote::STATUS_ACCEPTED;
-        $clientName = $quote->client?->name ?? 'El cliente';
-        $plate = $quote->vehicle?->plate ?? 'Sin patente';
-        $total = number_format((float) $quote->total_amount, 0, ',', '.');
-        $minutesToRespond = $quote->sent_at ? (int) $quote->sent_at->diffInMinutes($quote->responded_at) : null;
-
         TenantNotification::create([
             'tenant_id' => $quote->tenant_id,
-            'type' => $accepted ? 'quote_accepted' : 'quote_rejected',
-            'title' => $accepted ? 'Cotización aprobada por el cliente' : 'Cotización rechazada por el cliente',
-            'body' => $accepted
-                ? "{$clientName} aprobó la cotización #{$quote->id} ({$plate}) por \${$total}. Ya puedes agendar el ingreso y reponer repuestos."
-                : "{$clientName} rechazó la cotización #{$quote->id} ({$plate}).",
-            'data' => [
-                'quote_id' => $quote->id,
-                'work_order_id' => $quote->work_order_id,
-                'total_amount' => (float) $quote->total_amount,
-                'minutes_to_respond' => $minutesToRespond,
-            ],
+            'type' => $status === Quote::STATUS_ACCEPTED ? 'quote_accepted' : 'quote_rejected',
+            'title' => $status === Quote::STATUS_ACCEPTED ? 'Cotización aceptada' : 'Cotización rechazada',
+            'body' => ($quote->client?->name ?? 'El cliente').' respondió la cotización #'.$quote->id.'.',
+            'data' => ['quote_id' => $quote->id],
         ]);
     }
 
     public function updateTax(Quote $quote, bool $applyTax, ?float $taxRate = null): Quote
     {
         return $this->quoteItemService->updateTax($quote, $applyTax, $taxRate);
-    }
-
-    /**
-     * Crea la Orden de Trabajo a partir de una cotización manual aceptada y la enlaza.
-     */
-    public function convertToWorkOrder(Quote $quote): WorkOrder
-    {
-        if ($quote->work_order_id) {
-            return $quote->workOrder()->firstOrFail();
-        }
-
-        $workOrder = WorkOrder::create([
-            'vehicle_id' => $quote->vehicle_id,
-            'status' => WorkOrder::STATUS_RECEPCION,
-            'observations' => 'Creada a partir de una cotización manual aceptada.',
-            'total_amount' => $quote->total_amount,
-        ]);
-
-        $quote->update(['work_order_id' => $workOrder->id]);
-
-        return $workOrder;
     }
 
     private function sendEventDescription(string $channel): string

@@ -5,388 +5,156 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Client;
-use App\Models\Plan;
 use App\Models\Product;
 use App\Models\Quote;
-use App\Models\Service;
-use App\Models\TenantNotification;
+use App\Models\Tenant;
 use App\Models\User;
-use App\Models\Vehicle;
-use App\Models\VehicleBrand;
-use App\Models\VehicleModel;
 use App\Models\WorkOrder;
-use App\Services\PlanFeatureService;
+use App\Services\ManualQuoteService;
+use App\Services\TenantSetupService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Inertia\Testing\AssertableInertia;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 use Tests\Traits\CreatesTenant;
 
 class ManualQuoteControllerTest extends TestCase
 {
-    use CreatesTenant;
-    use RefreshDatabase;
+    use CreatesTenant, RefreshDatabase;
 
     private User $admin;
 
     private Client $client;
 
-    private Vehicle $vehicle;
-
-    private Product $product;
-
-    private Service $service;
-
     protected function setUp(): void
     {
         parent::setUp();
-
         $tenant = $this->setUpTenant();
-        $plan = Plan::factory()->create([
-            'feature_keys' => [PlanFeatureService::FEATURE_COMMERCIAL_QUOTES],
-        ]);
-        $tenant->update(['plan_id' => $plan->id]);
-
-        $this->admin = User::factory()->create([
-            'tenant_id' => $tenant->id,
-        ]);
+        $this->admin = User::factory()->create(['tenant_id' => $tenant->id, 'needs_password_change' => false]);
         $this->admin->assignRole('Admin');
-
-        $this->client = Client::create([
-            'name' => 'Cliente Cotizacion Manual',
-            'rut' => '22222222-2',
-            'phone' => '+56922222222',
-            'email' => 'cliente.manual@example.com',
-        ]);
-
-        $this->vehicle = Vehicle::create([
-            'client_id' => $this->client->id,
-            'plate' => 'MANU01',
-            'brand' => 'Toyota',
-            'model' => 'Yaris',
-        ]);
-
-        $this->product = Product::factory()->create([
-            'selling_price' => 15000,
-        ]);
-
-        $this->service = Service::create([
-            'name' => 'Cambio de aceite',
-            'code' => 'SERV-MAN-001',
-            'cost_price' => 8000,
-            'selling_price' => 20000,
-            'estimated_minutes' => 30,
-            'is_active' => true,
-        ]);
+        $this->client = Client::create(['name' => 'Cliente Demo', 'rut' => '12345678-5']);
     }
 
-    private function createDraftQuote(): Quote
+    private function draft(): Quote
     {
-        $this->actingAs($this->admin)
-            ->post(route('quotes.store'), [
-                'client_id' => $this->client->id,
-                'vehicle_id' => $this->vehicle->id,
-            ])
-            ->assertRedirect();
-
-        return Quote::query()->where('client_id', $this->client->id)->latest('id')->firstOrFail();
+        return app(ManualQuoteService::class)->createDraft(['client_id' => $this->client->id]);
     }
 
-    public function test_admin_can_create_a_manual_quote_draft(): void
+    private function pricedQuote(): Quote
     {
-        $quote = $this->createDraftQuote();
+        $quote = $this->draft();
+        app(ManualQuoteService::class)->addItem($quote, ['description' => 'Asesoría', 'quantity' => 2, 'unit_price' => 10000, 'discount_percent' => 10]);
 
-        $this->assertSame(Quote::STATUS_DRAFT, $quote->status);
-        $this->assertSame($this->client->id, $quote->client_id);
-        $this->assertSame($this->vehicle->id, $quote->vehicle_id);
+        return $quote->refresh();
+    }
+
+    public function test_quote_can_be_created_without_vehicle_or_work_order(): void
+    {
+        $this->actingAs($this->admin)->post(route('quotes.store'), ['client_id' => $this->client->id])->assertRedirect();
+        $quote = Quote::query()->firstOrFail();
+        $this->assertNull($quote->vehicle_id);
         $this->assertNull($quote->work_order_id);
+        $this->assertSame('draft', $quote->status);
     }
 
-    public function test_create_page_exposes_vehicle_catalog_brands(): void
+    public function test_items_and_taxes_are_calculated(): void
     {
-        VehicleBrand::query()->create(['name' => 'Toyota', 'code' => 'TOYOTA']);
-
-        $this->actingAs($this->admin)
-            ->get(route('quotes.create'))
-            ->assertOk()
-            ->assertInertia(fn (AssertableInertia $page) => $page
-                ->component('Quotes/Create')
-                ->has('vehicleCatalogBrands', 1)
-                ->where('vehicleCatalogBrands.0.name', 'Toyota')
-            );
+        $quote = $this->pricedQuote();
+        $this->assertEquals(18000, $quote->subtotal_amount);
+        $this->assertEquals(3420, $quote->tax_amount);
+        $this->assertEquals(21420, $quote->total_amount);
     }
 
-    public function test_store_client_with_vehicle_uses_catalog_names_when_ids_are_sent(): void
+    public function test_accepting_does_not_create_work_order(): void
     {
-        $brand = VehicleBrand::query()->create(['name' => 'Toyota', 'code' => 'TOYOTA']);
-        $model = VehicleModel::query()->create([
-            'vehicle_brand_id' => $brand->id,
-            'name' => 'Yaris',
-            'code' => 'YARIS',
-        ]);
-
-        $this->actingAs($this->admin)
-            ->post(route('quotes.store-client'), [
-                'plate' => 'BBFL45',
-                'vehicle_brand_id' => $brand->id,
-                'vehicle_model_id' => $model->id,
-                'vehicle_brand' => 'marca alterada',
-                'vehicle_model' => 'modelo alterado',
-                'rut' => '11111111-1',
-                'name' => 'Cliente nuevo',
-                'phone' => '+56911111111',
-                'secondary_phone' => '',
-                'address' => '',
-            ])
-            ->assertOk()
-            ->assertJsonPath('vehicle.brand', 'Toyota')
-            ->assertJsonPath('vehicle.model', 'Yaris');
+        $quote = $this->pricedQuote();
+        $this->actingAs($this->admin)->from(route('quotes.show', $quote))->post(route('quotes.approve-manually', $quote))->assertRedirect(route('quotes.show', $quote));
+        $this->assertSame('accepted', $quote->fresh()->status);
+        $this->assertSame(0, WorkOrder::query()->count());
     }
 
-    public function test_admin_can_add_and_remove_items_from_a_manual_quote(): void
+    public function test_client_can_accept_and_cannot_respond_twice(): void
     {
-        $quote = $this->createDraftQuote();
-
-        $this->actingAs($this->admin)
-            ->post(route('quotes.items.store', ['quote' => $quote->id]), [
-                'service_id' => $this->service->id,
-                'description' => '',
-                'quantity' => 1,
-                'unit_price' => $this->service->selling_price,
-            ])
-            ->assertRedirect();
-
-        $this->assertDatabaseHas('quote_items', [
-            'quote_id' => $quote->id,
-            'service_id' => $this->service->id,
-            'description' => $this->service->name,
-        ]);
-
-        $this->assertSame('20000.00', $quote->refresh()->subtotal_amount);
-        $this->assertDatabaseHas('quote_events', [
-            'quote_id' => $quote->id,
-            'event_type' => 'item_added',
-        ]);
-
-        $item = $quote->items()->where('service_id', $this->service->id)->firstOrFail();
-
-        $this->actingAs($this->admin)
-            ->post(route('quotes.items.store', ['quote' => $quote->id]), [
-                'product_id' => $this->product->id,
-                'description' => '',
-                'quantity' => 1,
-                'unit_price' => $this->product->selling_price,
-            ])
-            ->assertRedirect();
-
-        $this->assertSame('35000.00', $quote->refresh()->subtotal_amount);
-
-        $this->actingAs($this->admin)
-            ->delete(route('quotes.items.destroy', ['quote' => $quote->id, 'item' => $item->id]))
-            ->assertRedirect();
-
-        $this->assertDatabaseMissing('quote_items', ['id' => $item->id]);
-        $this->assertSame('15000.00', $quote->refresh()->subtotal_amount);
-        $this->assertDatabaseHas('quote_events', [
-            'quote_id' => $quote->id,
-            'event_type' => 'item_removed',
-        ]);
+        $quote = $this->pricedQuote();
+        app(ManualQuoteService::class)->send($quote, 'manual');
+        Tenant::forgetCurrent();
+        $url = route('quotes.public.respond', ['uuid' => $quote->uuid]);
+        $this->post($url, ['decision' => 'accepted'])->assertRedirect();
+        $this->assertSame('accepted', $quote->fresh()->status);
+        $this->assertSame(0, WorkOrder::withoutGlobalScopes()->count());
+        $this->post($url, ['decision' => 'rejected'])->assertStatus(409);
     }
 
-    public function test_admin_can_send_a_manual_quote_to_the_customer(): void
+    public function test_client_can_reject(): void
     {
-        $quote = $this->createDraftQuote();
-
-        $this->actingAs($this->admin)
-            ->post(route('quotes.items.store', ['quote' => $quote->id]), [
-                'service_id' => $this->service->id,
-                'description' => '',
-                'quantity' => 1,
-                'unit_price' => $this->service->selling_price,
-            ])
-            ->assertRedirect();
-
-        $this->actingAs($this->admin)
-            ->post(route('quotes.send', ['quote' => $quote->id]), [
-                'channel' => 'whatsapp',
-            ])
-            ->assertRedirect();
-
-        $quote->refresh();
-
-        $this->assertSame(Quote::STATUS_PENDING_CUSTOMER, $quote->status);
-        $this->assertNotNull($quote->sent_at);
-        $this->assertDatabaseHas('quote_events', [
-            'quote_id' => $quote->id,
-            'event_type' => 'quote_sent',
-        ]);
+        $quote = $this->pricedQuote();
+        app(ManualQuoteService::class)->send($quote, 'manual');
+        Tenant::forgetCurrent();
+        $this->post(route('quotes.public.respond', ['uuid' => $quote->uuid]), ['decision' => 'rejected', 'notes' => 'Lo revisaré después'])->assertRedirect();
+        $this->assertSame('rejected', $quote->fresh()->status);
     }
 
-    public function test_admin_can_approve_a_manual_quote_and_generate_a_work_order(): void
+    public function test_draft_is_not_visible_publicly(): void
     {
-        $quote = $this->createDraftQuote();
-
-        $this->actingAs($this->admin)
-            ->post(route('quotes.items.store', ['quote' => $quote->id]), [
-                'service_id' => $this->service->id,
-                'description' => '',
-                'quantity' => 1,
-                'unit_price' => $this->service->selling_price,
-            ])
-            ->assertRedirect();
-
-        $this->actingAs($this->admin)
-            ->post(route('quotes.approve-manually', ['quote' => $quote->id]), [
-                'channel' => 'phone',
-            ])
-            ->assertRedirect();
-
-        $quote->refresh();
-
-        $this->assertSame(Quote::STATUS_ACCEPTED, $quote->status);
-        $this->assertNotNull($quote->work_order_id);
-
-        $workOrder = WorkOrder::query()->findOrFail($quote->work_order_id);
-        $this->assertSame(WorkOrder::STATUS_RECEPCION, $workOrder->status);
-        $this->assertSame($this->vehicle->id, $workOrder->vehicle_id);
-
-        $this->assertDatabaseHas('quote_events', [
-            'quote_id' => $quote->id,
-            'event_type' => 'staff_approved_manually',
-        ]);
+        $quote = $this->draft();
+        Tenant::forgetCurrent();
+        $this->get(route('quotes.public.show', ['uuid' => $quote->uuid]))->assertNotFound();
     }
 
-    public function test_customer_can_accept_a_manual_quote_publicly_and_generate_a_work_order(): void
+    public function test_public_quote_exposes_only_commercial_data(): void
     {
-        $quote = $this->createDraftQuote();
-
-        $this->actingAs($this->admin)
-            ->post(route('quotes.items.store', ['quote' => $quote->id]), [
-                'service_id' => $this->service->id,
-                'description' => '',
-                'quantity' => 1,
-                'unit_price' => $this->service->selling_price,
-            ])
-            ->assertRedirect();
-
-        $this->actingAs($this->admin)
-            ->post(route('quotes.send', ['quote' => $quote->id]), [
-                'channel' => 'whatsapp',
-            ])
-            ->assertRedirect();
-
-        $this->post(route('quotes.public.respond', ['uuid' => $quote->uuid]), [
-            'decision' => 'accepted',
-            'notes' => 'De acuerdo, procedan.',
-        ])->assertRedirect();
-
-        $quote->refresh();
-
-        $this->assertSame(Quote::STATUS_ACCEPTED, $quote->status);
-        $this->assertSame('De acuerdo, procedan.', $quote->customer_response_notes);
-        $this->assertNotNull($quote->work_order_id);
-        $this->assertDatabaseHas('quote_events', [
-            'quote_id' => $quote->id,
-            'event_type' => 'customer_accepted',
-        ]);
+        $quote = $this->pricedQuote();
+        app(ManualQuoteService::class)->send($quote, 'manual');
+        Tenant::forgetCurrent();
+        $this->get(route('quotes.public.show', ['uuid' => $quote->uuid]))->assertOk()->assertInertia(fn (Assert $page) => $page->component('Quotes/PublicShow')->where('clientName', 'Cliente Demo')->missing('quote.vehicle')->missing('quote.client')->missing('quote.tenant')->missing('quote.work_order_id'));
     }
 
-    public function test_customer_can_reject_a_manual_quote_publicly(): void
+    public function test_empty_quote_cannot_be_shared(): void
     {
-        $quote = $this->createDraftQuote();
-
-        $this->actingAs($this->admin)
-            ->post(route('quotes.items.store', ['quote' => $quote->id]), [
-                'service_id' => $this->service->id,
-                'description' => '',
-                'quantity' => 1,
-                'unit_price' => $this->service->selling_price,
-            ])
-            ->assertRedirect();
-
-        $this->actingAs($this->admin)
-            ->post(route('quotes.send', ['quote' => $quote->id]), [
-                'channel' => 'whatsapp',
-            ])
-            ->assertRedirect();
-
-        $this->post(route('quotes.public.respond', ['uuid' => $quote->uuid]), [
-            'decision' => 'rejected',
-            'notes' => 'Necesito cotizar en otro lado.',
-        ])->assertRedirect();
-
-        $quote->refresh();
-
-        $this->assertSame(Quote::STATUS_REJECTED, $quote->status);
-        $this->assertNull($quote->work_order_id);
-        $this->assertDatabaseHas('quote_events', [
-            'quote_id' => $quote->id,
-            'event_type' => 'customer_rejected',
-        ]);
+        $quote = $this->draft();
+        $this->actingAs($this->admin)->post(route('quotes.send', $quote), ['channel' => 'manual'])->assertSessionHasErrors('quote');
+        $this->assertSame('draft', $quote->fresh()->status);
     }
 
-    public function test_customer_acceptance_notifies_the_workshop_with_the_amount(): void
+    public function test_accepted_quote_cannot_be_changed(): void
     {
-        $quote = $this->createSentQuote();
-
-        $this->post(route('quotes.public.respond', ['uuid' => $quote->uuid]), [
-            'decision' => 'accepted',
-        ])->assertRedirect();
-
-        $notification = TenantNotification::query()->where('type', 'quote_accepted')->firstOrFail();
-
-        $this->assertSame($quote->tenant_id, $notification->tenant_id);
-        $this->assertSame($quote->id, $notification->data['quote_id']);
-        $this->assertEquals((float) $quote->fresh()->total_amount, $notification->data['total_amount']);
-        $this->assertStringContainsString(number_format((float) $quote->fresh()->total_amount, 0, ',', '.'), $notification->body);
+        $quote = $this->pricedQuote();
+        app(ManualQuoteService::class)->approveManually($quote, 'other');
+        $this->actingAs($this->admin)->post(route('quotes.items.store', $quote), ['description' => 'Otro', 'quantity' => 1, 'unit_price' => 100])->assertStatus(409);
     }
 
-    public function test_customer_rejection_notifies_the_workshop(): void
+    public function test_other_company_cannot_read_or_search_quote(): void
     {
-        $quote = $this->createSentQuote();
-
-        $this->post(route('quotes.public.respond', ['uuid' => $quote->uuid]), [
-            'decision' => 'rejected',
-        ])->assertRedirect();
-
-        $this->assertDatabaseHas('tenant_notifications', [
-            'tenant_id' => $quote->tenant_id,
-            'type' => 'quote_rejected',
-        ]);
+        $quote = $this->pricedQuote();
+        $other = Tenant::factory()->create();
+        $user = User::factory()->create(['tenant_id' => $other->id]);
+        app(TenantSetupService::class)->provisionTenant($other, $user);
+        $other->makeCurrent();
+        $this->actingAs($user)->get(route('quotes.show', ['tenantBySlug' => $other->slug, 'quote' => $quote->id]))->assertNotFound();
+        $this->get(route('quotes.index', ['tenantBySlug' => $other->slug, 'search' => 'Cliente']))->assertOk()->assertInertia(fn (Assert $page) => $page->has('quotes.data', 0));
     }
 
-    public function test_show_exposes_whatsapp_message_with_total_and_public_link(): void
+    public function test_cannot_create_quote_for_another_company_client(): void
     {
-        $quote = $this->createSentQuote();
-        $total = number_format((float) $quote->fresh()->total_amount, 0, ',', '.');
-
-        $this->actingAs($this->admin)
-            ->get(route('quotes.show', ['quote' => $quote->id]))
-            ->assertInertia(fn (AssertableInertia $page) => $page
-                ->component('Quotes/Show')
-                ->where('whatsAppMessage', fn (string $message) => str_contains($message, '$'.$total)
-                    && str_contains($message, route('quotes.public.show', ['uuid' => $quote->uuid]))
-                    && str_contains($message, 'Cliente Cotizacion Manual')));
+        $other = Tenant::factory()->create();
+        $other->makeCurrent();
+        $client = Client::create(['name' => 'Otra empresa', 'rut' => '11111111-1']);
+        $this->admin->tenant->makeCurrent();
+        $this->actingAs($this->admin)->post(route('quotes.store'), ['client_id' => $client->id])->assertSessionHasErrors('client_id');
     }
 
-    private function createSentQuote(): Quote
+    public function test_cannot_add_another_company_product(): void
     {
-        $quote = $this->createDraftQuote();
+        $quote = $this->draft();
+        $other = Tenant::factory()->create();
+        $other->makeCurrent();
+        $product = Product::factory()->create(['tenant_id' => $other->id]);
+        $this->admin->tenant->makeCurrent();
+        $this->actingAs($this->admin)->post(route('quotes.items.store', $quote), ['product_id' => $product->id, 'quantity' => 1])->assertSessionHasErrors('product_id');
+    }
 
-        $this->actingAs($this->admin)
-            ->post(route('quotes.items.store', ['quote' => $quote->id]), [
-                'service_id' => $this->service->id,
-                'description' => '',
-                'quantity' => 1,
-                'unit_price' => $this->service->selling_price,
-            ])
-            ->assertRedirect();
-
-        $this->actingAs($this->admin)
-            ->post(route('quotes.send', ['quote' => $quote->id]), ['channel' => 'whatsapp'])
-            ->assertRedirect();
-
-        auth()->logout();
-
-        return $quote->fresh();
+    public function test_user_without_quote_permission_cannot_access_quotes(): void
+    {
+        $user = User::factory()->create(['tenant_id' => $this->admin->tenant_id]);
+        $this->actingAs($user)->get(route('quotes.index'))->assertForbidden();
     }
 }

@@ -14,11 +14,19 @@ class SwitchPermissionTeamTask implements SwitchTenantTask
 
     public function makeCurrent(IsTenant $tenant): void
     {
+        $this->refreshPermissionRegistrar();
         $this->permissionRegistrar->setPermissionsTeamId($tenant->id);
     }
 
     public function forgetCurrent(): void
     {
+        $this->refreshPermissionRegistrar();
         $this->permissionRegistrar->setPermissionsTeamId(null);
+    }
+
+    private function refreshPermissionRegistrar(): void
+    {
+        app()->forgetInstance(PermissionRegistrar::class);
+        $this->permissionRegistrar = app(PermissionRegistrar::class);
     }
 }

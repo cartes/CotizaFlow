@@ -11,50 +11,14 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 
 class ServiceTemplateExport implements FromArray, ShouldAutoSize, WithHeadings, WithTitle
 {
-    /**
-     * @return array<int, array<int, string|int>>
-     */
     public function array(): array
     {
-        return [
-            [
-                'SERV-MAN-01',
-                'Cambio de aceite y filtro',
-                'Servicio de mantencion preventiva con cambio de aceite y filtro',
-                15000,
-                35000,
-                'con_iva',
-                45,
-                'si',
-            ],
-            [
-                'SERV-ALIN-02',
-                'Alineacion y balanceo 4 ruedas',
-                'Alineacion laser computarizada y balanceo',
-                8000,
-                22000,
-                'mas_iva',
-                60,
-                'si',
-            ],
-        ];
+        return [['SERV-001', 'Asesoría', 'Sesión de asesoría', 10000, 25000, 'mas_iva', 'si']];
     }
 
-    /**
-     * @return array<int, string>
-     */
     public function headings(): array
     {
-        return [
-            'codigo',
-            'nombre',
-            'descripcion',
-            'costo',
-            'precio_venta',
-            'impuesto',
-            'minutos_estimados',
-            'activo',
-        ];
+        return ['codigo', 'nombre', 'descripcion', 'costo', 'precio_venta', 'impuesto', 'activo'];
     }
 
     public function title(): string

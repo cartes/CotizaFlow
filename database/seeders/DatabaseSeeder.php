@@ -18,7 +18,6 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             SettingsSeeder::class,
-            VehicleCatalogSeeder::class,
             PlanSeeder::class,
             TenantSeeder::class,
             ProductCategorySeeder::class,
@@ -28,7 +27,7 @@ class DatabaseSeeder extends Seeder
         // Super Admin (sin tenant)
         User::factory()->create([
             'name' => 'Super Admin',
-            'email' => 'superadmin@tallerflow.cl',
+            'email' => 'superadmin@cotizaflow.test',
             'password' => bcrypt('password'),
             'is_super_admin' => true,
             'tenant_id' => null,

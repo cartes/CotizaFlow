@@ -1,329 +1,155 @@
 <script setup>
-import TenantSearch from '@/Components/TenantSearch.vue';
-import TenantMobileNavigation from '@/Components/TenantMobileNavigation.vue';
+import { computed, watch, ref } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import { computed, ref, watch } from 'vue';
-import { Link } from '@inertiajs/vue3';
-import { useTenantRouting } from '@/composables/useTenantRouting';
-import NotificationBell from '@/Components/NotificationBell.vue';
-import BranchSwitcher from '@/Components/BranchSwitcher.vue';
-import OnboardingTour from '@/Components/OnboardingTour.vue';
-import FloatingSupportButton from '@/Components/FloatingSupportButton.vue';
 import PasswordChangeModal from '@/Components/PasswordChangeModal.vue';
 import Toast from '@/Components/Toast.vue';
-import ErrorBoundary from '@/Components/ErrorBoundary.vue';
-
-const { page, tenantRouteParams } = useTenantRouting();
-const user = computed(() => page.props.auth.user);
-const isSuperAdmin = computed(() => Boolean(user.value?.is_super_admin));
+const page = usePage();
+const user = computed(() => page.props.auth?.user);
+const tenant = computed(() => page.props.tenant);
 const permissions = computed(() => user.value?.permissions ?? []);
-const roles = computed(() => user.value?.roles ?? []);
-const planAccess = computed(() => page.props.planAccess ?? null);
-const tenantContext = computed(() => page.props.tenantContext ?? null);
-const hasPermission = (permission) => permissions.value.includes(permission);
-const canManageAppointments = computed(() => hasPermission('appointments.manage'));
-const canViewWorkOrders = computed(() => ['work-orders.view', 'work-orders.view-own']
-    .some((permission) => hasPermission(permission)));
-const canManageInventory = computed(() => hasPermission('inventory.manage'));
-const canManageCustomers = computed(() => hasPermission('customers.manage'));
-const canViewReports = computed(() => hasPermission('reports.view'));
-const commercialQuotesEnabled = computed(() => planAccess.value?.commercial_quotes_enabled ?? false);
-const commercialReportsEnabled = computed(() => planAccess.value?.commercial_reports_enabled ?? false);
-const isWebsiteSettings = computed(() => route().current('taller.settings') && new URL(page.url, 'http://localhost').searchParams.get('tab') === 'website');
-const canAccessSettings = computed(() => roles.value.includes('Admin') || hasPermission('users.manage') || hasPermission('branches.manage'));
-const hasCustomRoles = computed(() => (tenantContext.value?.features ?? []).includes('custom_roles'));
-const canAccessRoles = computed(() => canAccessSettings.value && hasCustomRoles.value);
-
-const SECTION_TOUR_ROUTES = {
-    dashboard: ['taller.dashboard'],
-    reception: ['receptions.*'],
-    'work-orders': ['work-orders.*'],
-    quotes: ['quotes.*'],
-    inventory: ['inventory.*', 'product-categories.*'],
-    services: ['services.*'],
-    clients: ['clients.*'],
-    reports: ['reports.*'],
-    'subscription-plans': ['subscription.plans'],
-    'subscription-billing': ['subscription.billing'],
-    settings: ['taller.settings*', 'taller.roles.*', 'tenant.users.*'],
-};
-
-const sectionTourKey = computed(() => {
-    for (const [key, patterns] of Object.entries(SECTION_TOUR_ROUTES)) {
-        if (patterns.some((pattern) => route().current(pattern))) {
-            return key;
-        }
-    }
-
-    return null;
-});
-
-const navItems = computed(() => ([
-    { label: 'Inicio', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', route: 'taller.dashboard', visible: true },
-    { label: 'Recepción', icon: 'M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z M15 13a3 3 0 11-6 0 3 3 0 016 0z', route: 'receptions.create', visible: canManageAppointments.value },
-    { label: 'Agenda', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', route: 'appointments.index', visible: canManageAppointments.value },
-    { label: 'Órdenes', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01', route: 'work-orders.index', visible: canViewWorkOrders.value },
-    { label: 'Cotizaciones', icon: 'M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 012 2v14l-4-3-3 3-3-3-3 3-3-3-2 1.5V5a2 2 0 012-2z', route: 'quotes.index', visible: canViewWorkOrders.value && commercialQuotesEnabled.value },
-    { label: 'Inventario', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', route: 'inventory.index', visible: canManageInventory.value },
-    { label: 'Servicios', icon: 'M9 12h6m-3-3v6m6 5H6a2 2 0 01-2-2V8a2 2 0 012-2h3.172a2 2 0 011.414.586l.828.828A2 2 0 0012.828 8H18a2 2 0 012 2v8a2 2 0 01-2 2z', route: 'services.index', visible: canManageInventory.value && commercialQuotesEnabled.value },
-    { label: 'Clientes', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', route: 'clients.index', visible: canManageCustomers.value },
-    { label: 'Reportes', icon: 'M9 17v-6m4 6V7m4 10v-3M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z', route: 'reports.index', visible: canViewReports.value && commercialReportsEnabled.value },
-    { label: 'Suscripción', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z', route: 'subscription.plans', visible: canAccessSettings.value },
-    { label: 'Facturación', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', route: 'subscription.billing', visible: canAccessSettings.value },
-]).filter((item) => item.visible));
-
-const isNavItemActive = (item) => ['taller.dashboard', 'subscription.plans', 'subscription.billing'].includes(item.route)
-    ? route().current(item.route)
-    : route().current(`${item.route.split('.')[0]}.*`);
-const mobileItems = computed(() => [
-    ...navItems.value.map(item => ({ ...item, url: route(item.route, tenantRouteParams.value), active: isNavItemActive(item) })),
-    ...(hasPermission('users.manage') ? [
-        { label: 'Mi página web', url: route('taller.settings', { ...tenantRouteParams.value, tab: 'website' }), icon: 'M3 5h18v14H3z M3 9h18', active: isWebsiteSettings.value },
-        { label: 'Configuración', url: route('taller.settings', tenantRouteParams.value), icon: 'M12 8a4 4 0 110 8 4 4 0 010-8z M12 3v2m0 14v2M3 12h2m14 0h2', active: route().current('taller.settings') && !isWebsiteSettings.value },
-    ] : []),
-    ...(canAccessRoles.value ? [{ label: 'Roles y permisos', url: route('taller.roles.index', tenantRouteParams.value), icon: 'M12 4a4 4 0 110 8 4 4 0 010-8z M4 21v-2a8 8 0 0116 0v2', active: route().current('taller.roles.*') }] : []),
-    ...(isSuperAdmin.value ? [{ label: 'Panel Super-Admin', url: route('admin.dashboard'), icon: 'M3 12h18M12 3v18', active: false }] : []),
-]);
-const canSearchWorkOrders = computed(() => hasPermission('work-orders.view') || hasPermission('work-orders.view-own'));
-const searchUrl = computed(() => canSearchWorkOrders.value ? route('work-orders.index', tenantRouteParams.value) : canManageCustomers.value ? route('clients.index', tenantRouteParams.value) : null);
-const searchLabel = computed(() => canSearchWorkOrders.value ? 'Buscar patente, orden o cliente' : 'Buscar cliente');
-
+const can = (permission) =>
+    user.value?.is_super_admin || permissions.value.includes(permission);
+const params = computed(() =>
+    tenant.value ? { tenantBySlug: tenant.value.slug } : {},
+);
+const items = computed(() =>
+    tenant.value
+        ? [
+              { label: 'Inicio', name: 'taller.dashboard', show: true },
+              {
+                  label: 'Cotizaciones',
+                  name: 'quotes.index',
+                  show: can('quotes.view'),
+              },
+              {
+                  label: 'Seguimiento',
+                  name: 'quotes.follow-up',
+                  show: can('quotes.view'),
+              },
+              {
+                  label: 'Clientes',
+                  name: 'clients.index',
+                  show: can('customers.manage'),
+              },
+              {
+                  label: 'Productos',
+                  name: 'inventory.index',
+                  show: can('inventory.manage'),
+              },
+              {
+                  label: 'Servicios',
+                  name: 'services.index',
+                  show: can('inventory.manage'),
+              },
+              {
+                  label: 'Configuración',
+                  name: 'taller.settings',
+                  show: can('users.manage'),
+              },
+          ].filter((item) => item.show)
+        : [],
+);
 const toast = ref({ message: '', type: 'success' });
-const showToast = (message, type = 'success') => {
-    if (!message) {
-        return;
-    }
-    toast.value = { message: '', type };
-    requestAnimationFrame(() => {
-        toast.value = { message, type };
-    });
-};
-
 watch(
-    () => [
-        page.props.flash?.success,
-        page.props.flash?.error,
-        page.props.flash?.warning,
-        page.props.flash?.info,
-        page.props.flash?.status,
-    ],
-    ([success, error, warning, info, status]) => {
-        if (error) {
-            showToast(error, 'error');
-            return;
-        }
-        if (warning) {
-            showToast(warning, 'warning');
-            return;
-        }
-        if (success) {
-            showToast(success, 'success');
-            return;
-        }
-        if (info) {
-            showToast(info, 'info');
-            return;
-        }
-        if (status) {
-            showToast(status, 'info');
+    () => page.props.flash,
+    (flash) => {
+        for (const type of ['error', 'warning', 'success', 'info', 'status']) {
+            if (flash?.[type]) {
+                toast.value = {
+                    message: flash[type],
+                    type: type === 'status' ? 'info' : type,
+                };
+                break;
+            }
         }
     },
-    { immediate: true }
+    { immediate: true },
 );
 </script>
-
 <template>
-    <div class="min-h-screen bg-gradient-to-br from-[#E2EAF4] via-[#F0F4F8] to-[#E2EAF4] text-slate-800 font-sans selection:bg-[#FF7A00]/30 overflow-x-hidden flex">
-        
-        <!-- SIDEBAR - Desktop Only -->
-        <aside class="hidden lg:flex lg:flex-col lg:w-72 fixed inset-y-0 left-0 bg-white/60 backdrop-blur-2xl border-r border-white/60 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-50">
-            <!-- Branding -->
-            <div class="px-8 py-6 flex flex-col gap-2" data-tour="tenant-brand">
-                <div class="flex items-center gap-3">
-                    <ApplicationLogo class="h-10 w-10 rounded-[14px] flex-shrink-0 shadow-sm" />
-                    <div class="flex items-center gap-1.5 text-[1.75rem] font-bold tracking-tight leading-none">
-                        <span class="text-slate-900">Taller</span>
-                        <span class="text-[#FF7A00]">Flow</span>
-                    </div>
-                </div>
-                <!-- Badge de Plan del Taller -->
-                <div class="flex items-center gap-2 mt-1">
-                    <span class="inline-flex items-center rounded-md bg-orange-50 px-2 py-0.5 text-xs font-semibold text-[#FF7A00] ring-1 ring-inset ring-orange-500/20 uppercase tracking-wider">
-                        Plan {{ planAccess?.plan_name || 'Básico' }}
-                    </span>
-                    <span v-if="isSuperAdmin" class="inline-flex items-center rounded-md bg-slate-900 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
-                        Super-Admin
-                    </span>
-                </div>
-            </div>
-
-            <!-- Navegación Desktop -->
-            <nav class="flex-1 min-h-0 overflow-y-auto px-4 py-6 space-y-3" data-tour="tenant-navigation">
+    <div class="cf-workspace">
+        <div class="cf-shell">
+            <header class="cf-topbar">
                 <Link
-                    v-if="isSuperAdmin"
-                    :href="route('admin.dashboard')"
-                    class="flex items-center gap-3 px-4 py-3 mb-2 rounded-[1.25rem] font-bold bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-md group text-sm"
+                    :href="
+                        tenant
+                            ? route('taller.dashboard', params)
+                            : route('home')
+                    "
+                    class="cf-brand"
+                    ><ApplicationLogo class="h-9 w-9" /><span
+                        >CotizaFlow</span
+                    ></Link
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#FF7A00]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    <span>Panel Super-Admin</span>
-                </Link>
-
-                <Link
-                    v-for="(item, index) in navItems"
-                    :key="index"
-                    :href="route(item.route, tenantRouteParams)"
-                    class="flex items-center gap-4 px-4 py-4 rounded-[1.25rem] font-bold transition-all duration-300 group"
-                    :class="isNavItemActive(item) ? 'bg-[#FF7A00] text-white shadow-[0_4px_12px_rgba(249,168,38,0.2)]' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="item.icon" />
-                    </svg>
-                    <span>{{ item.label }}</span>
-                </Link>
-
-                <Link
-                    v-if="hasPermission('users.manage')"
-                    :href="route('taller.settings', { ...tenantRouteParams, tab: 'website' })"
-                    class="flex items-center gap-4 rounded-[1.25rem] px-4 py-4 font-bold transition"
-                    :class="isWebsiteSettings ? 'bg-[#FF7A00] text-white' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'"
-                >
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5h18v14H3z M3 9h18 M7 7h.01 M10 7h.01" /></svg>
-                    <span>Mi página web</span>
-                </Link>
-
-                <Link
-                    v-if="canAccessSettings"
-                    :href="route('taller.settings', tenantRouteParams)"
-                    data-tour="tenant-settings"
-                    class="flex items-center gap-4 px-4 py-4 rounded-[1.25rem] font-bold transition-all duration-300 group"
-                    :class="(route().current('taller.settings') && !isWebsiteSettings) || route().current('taller.roles.*') ? 'bg-[#FF7A00] text-white shadow-[0_4px_12px_rgba(249,168,38,0.2)]' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span>Configuración</span>
-                </Link>
-            </nav>
-
-            <section class="shrink-0 border-t border-white/60 p-6 flex flex-col gap-3 bg-white/30">
-                 <div class="bg-white/80 p-3 rounded-[1.5rem] flex items-center gap-3 shadow-sm border border-white">
-                    <img 
-                        :src="`https://ui-avatars.com/api/?name=${user?.name || 'User'}&background=F9A826&color=fff`" 
-                        class="w-10 h-10 rounded-full"
-                    />
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-bold text-slate-800 truncate">{{ user?.name || 'Usuario' }}</p>
-                        <p class="text-[10px] text-slate-400 truncate">{{ user?.email }}</p>
-                    </div>
-                 </div>
-                 
-                 <Link 
-                     :href="route('logout')" 
-                     method="post" 
-                     as="button" 
-                     class="flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-[1.25rem] transition-colors w-full text-center border border-transparent hover:border-red-100"
-                  >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                      </svg>
-                      Cerrar Sesión
-                  </Link>
-            </section>
-        </aside>
-
-        <!-- MAIN WRAPPER (Flexible para Desktop y Mobile) -->
-        <div class="flex-1 flex flex-col min-h-screen relative lg:ml-72 w-full max-w-[100vw] lg:max-w-[calc(100vw-18rem)]">
-            
-            <!-- HEADER (Mobile & Desktop) -->
-            <header class="pt-8 lg:pt-10 pb-4 px-6 lg:px-10 flex items-center justify-between sticky top-0 z-40 bg-gradient-to-b from-[#E2EAF4] via-[#E2EAF4]/90 to-transparent backdrop-blur-sm lg:backdrop-blur-none lg:bg-transparent">
-                <!-- Data Izquierda -->
-                <div class="flex items-center gap-3">
-                    <img 
-                        v-if="!$page.props.isDesktop" 
-                        :src="`https://ui-avatars.com/api/?name=${user?.name || 'User'}&background=F9A826&color=fff`" 
-                        alt="Avatar" 
-                        class="w-11 h-11 rounded-full border-2 border-white shadow-sm lg:hidden"
-                    />
-                    <div class="lg:hidden">
-                        <h2 class="text-[15px] font-bold text-gray-900 leading-tight">{{ user?.name || 'Bienvenido' }}</h2>
-                        <p class="text-[12px] font-medium text-gray-500">Santiago, Chile</p>
-                    </div>
-
-                    <!-- Buscador global en desktop -->
-                    <TenantSearch v-if="searchUrl" :search-url="searchUrl" :label="searchLabel" :list-view="canSearchWorkOrders" class="hidden w-full max-w-sm lg:flex" data-tour="tenant-search" />
-                </div>
-
-                <!-- Botones Derecha -->
-                <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                    <BranchSwitcher />
-                    <div data-tour="tenant-notifications" class="flex-shrink-0">
-                        <NotificationBell />
-                    </div>
+                <nav aria-label="Navegación principal" class="cf-main-tabs">
+                    <Link
+                        v-for="item in items"
+                        :key="item.name"
+                        :href="route(item.name, params)"
+                        :aria-current="
+                            route().current(item.name) ? 'page' : undefined
+                        "
+                        :class="{
+                            'is-active':
+                                route().current(item.name) ||
+                                (item.name === 'quotes.index' &&
+                                    route().current('quotes.*') &&
+                                    !route().current('quotes.follow-up')),
+                        }"
+                        >{{ item.label }}</Link
+                    >
+                    <Link
+                        v-if="user?.is_super_admin"
+                        :href="route('admin.dashboard')"
+                        :class="{
+                            'is-active': route().current('admin.dashboard'),
+                        }"
+                        >Administración</Link
+                    >
+                </nav>
+                <div class="cf-user-actions">
+                    <Link
+                        :href="route('profile.edit')"
+                        class="cf-profile"
+                        title="Mi perfil"
+                        aria-label="Mi perfil"
+                        ><span>{{ user?.name?.charAt(0) || 'U' }}</span></Link
+                    >
                     <Link
                         :href="route('logout')"
                         method="post"
                         as="button"
-                        class="inline-flex flex-shrink-0 items-center gap-2 rounded-full bg-white px-4 py-2.5 text-xs font-bold text-rose-500 shadow-sm transition-all hover:text-rose-600 hover:shadow-md sm:text-sm whitespace-nowrap"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        <span>Cerrar sesión</span>
-                    </Link>
+                        class="cf-sign-out"
+                        title="Cerrar sesión"
+                        aria-label="Cerrar sesión"
+                        ><svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            aria-hidden="true"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M14 8l4 4-4 4m4-4H7m3-7H5v14h5"
+                            /></svg
+                    ></Link>
                 </div>
             </header>
-
-            <!-- MAIN CONTENT AREA -->
-            <main class="flex-1 px-6 lg:px-10 pb-28 lg:pb-12 flex flex-col gap-6">
-                <TenantSearch v-if="searchUrl" :search-url="searchUrl" :label="searchLabel" :list-view="canSearchWorkOrders" class="lg:hidden" data-tour="tenant-mobile-search" />
-
-                <ErrorBoundary>
-                    <slot />
-                </ErrorBoundary>
+            <main class="cf-content">
+                <p class="cf-company-label">
+                    {{ tenant?.name || 'Administración' }}
+                </p>
+                <slot />
             </main>
-
-            <TenantMobileNavigation :items="mobileItems" :has-settings="hasPermission('users.manage')" />
-
         </div>
         <PasswordChangeModal v-if="user?.needs_password_change" />
-        <Toast :message="toast.message" :type="toast.type" @dismiss="toast.message = ''" />
-        <OnboardingTour variant="tenant" />
-        <OnboardingTour v-if="sectionTourKey" :key="sectionTourKey" :variant="sectionTourKey" />
-        <FloatingSupportButton :key="sectionTourKey" :section="sectionTourKey" />
+        <Toast
+            :message="toast.message"
+            :type="toast.type"
+            @dismiss="toast.message = ''"
+        />
     </div>
 </template>
-
-<style>
-/* Ocultar barra de scroll para limpiar diseño */
-::-webkit-scrollbar {
-  display: none;
-}
-* {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-}
-
-/* Excepcion: los contenedores con scroll horizontal (tablas, etc.) necesitan
-   una barra visible y usable, o el contenido que sobresale queda inalcanzable. */
-.overflow-x-auto {
-  -ms-overflow-style: auto;
-  scrollbar-width: thin;
-}
-.overflow-x-auto::-webkit-scrollbar {
-  display: block;
-  height: 8px;
-}
-.overflow-x-auto::-webkit-scrollbar-track {
-  background: transparent;
-}
-.overflow-x-auto::-webkit-scrollbar-thumb {
-  background-color: rgba(100, 116, 139, 0.35);
-  border-radius: 9999px;
-}
-.overflow-x-auto::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(100, 116, 139, 0.55);
-}
-</style>

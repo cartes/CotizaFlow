@@ -43,7 +43,7 @@ class RegisteredUserController extends Controller
         // Requiere contexto de tenant para registrarse
         if (! Tenant::checkCurrent()) {
             throw ValidationException::withMessages([
-                'email' => ['Debes registrarte desde la página de un taller.'],
+                'email' => ['Debes registrarte desde la página de una empresa.'],
             ]);
         }
 

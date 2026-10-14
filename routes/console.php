@@ -1,11 +1,8 @@
 <?php
 
 use App\Jobs\NotifyExpiringSubscriptions;
-use App\Jobs\QueueOverdueInvoiceWhatsAppReminders;
-use App\Jobs\SendDailyActivityReport;
 use App\Jobs\SendInactivityReminders;
 use App\Jobs\SendRenewalReminders;
-use App\Jobs\SendWeeklyActivityReport;
 use App\Jobs\SuspendExpiredTenants;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -21,16 +18,9 @@ Schedule::call(static fn () => app(SuspendExpiredTenants::class)->handle())
 Schedule::call(static fn () => app(NotifyExpiringSubscriptions::class)->handle())
     ->name('NotifyExpiringSubscriptions')
     ->dailyAt('08:00');
-Schedule::job(new QueueOverdueInvoiceWhatsAppReminders)->dailyAt('09:00');
 Schedule::call(static fn () => app(SendRenewalReminders::class)->handle())
     ->name('SendRenewalReminders')
     ->dailyAt('09:30');
-Schedule::call(static fn () => app(SendWeeklyActivityReport::class)->handle())
-    ->name('SendWeeklyActivityReport')
-    ->weeklyOn(6, '12:00');
-Schedule::call(static fn () => app(SendDailyActivityReport::class)->handle())
-    ->name('SendDailyActivityReport')
-    ->dailyAt('20:00');
 Schedule::call(static fn () => app(SendInactivityReminders::class)->handle())
     ->name('SendInactivityReminders')
     ->dailyAt('10:00');

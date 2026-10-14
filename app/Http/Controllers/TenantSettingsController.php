@@ -5,93 +5,27 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateTenantCommercialSettingsRequest;
-use App\Models\Branch;
 use App\Models\Tenant;
-use App\Models\User;
-use App\Services\BranchLimitService;
-use App\Services\TenantSetupChecklistService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\Permission\Models\Role;
 
 class TenantSettingsController extends Controller
 {
-    public function __construct(protected BranchLimitService $branchLimitService) {}
-
-    /**
-     * Muestra la página unificada de configuración del taller.
-     * Incluye gestión de usuarios, sucursales y datos del tenant.
-     */
-    public function index(TenantSetupChecklistService $checklist): Response
+    public function index(): Response
     {
         $tenant = Tenant::current();
 
-        $users = User::query()
-            ->where('tenant_id', $tenant->id)
-            ->with(['roles', 'branch'])
-            ->orderBy('created_at')
-            ->get(['id', 'name', 'email', 'branch_id', 'created_at']);
-
-        $branches = Branch::query()
-            ->where('tenant_id', $tenant->id)
-            ->withCount('users')
-            ->orderBy('is_main', 'desc')
-            ->orderBy('name')
-            ->get(['id', 'name', 'code', 'address', 'phone', 'email', 'is_main', 'is_active']);
-
-        $roles = Role::query()
-            ->whereIn('name', ['Admin', 'Recepcionista', 'Supervisor', 'Jefe', 'Mecanico'])
-            ->get(['id', 'name']);
-
         return Inertia::render('Settings/Index', [
-            'setupChecklist' => $checklist->forTenant($tenant),
-            'users' => $users->map(fn (User $user) => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'branch_id' => $user->branch_id,
-                'branch' => $user->branch ? [
-                    'id' => $user->branch->id,
-                    'name' => $user->branch->name,
-                    'code' => $user->branch->code,
-                ] : null,
-                'roles' => $user->roles->pluck('name'),
-                'created_at' => $user->created_at,
-            ]),
-            'branches' => $branches,
-            'roles' => $roles,
-            'planMaxUsers' => $tenant->userLimit(),
-            'currentUserCount' => $users->count(),
-            'canCreateBranch' => $this->branchLimitService->canCreateBranch($tenant),
-            'branchLimitInfo' => $this->branchLimitService->getLimitMessage($tenant),
-            'tenant' => [
-                ...$tenant->only('id', 'name', 'slug', 'seo_description', 'seo_address', 'comuna', 'whatsapp_number', 'website_url', 'primary_color', 'logo_path'),
-                'plan' => $tenant->currentPlan()->value,
-                'plan_label' => $tenant->currentPlan()->label(),
-                'max_discount_without_approval' => $tenant->maxDiscountWithoutApproval(),
-                'logo_url' => $tenant->logoUrl(),
-                'public_url' => route('taller.landing', ['tenantBySlug' => $tenant->slug]),
-                'scheduling_config' => $tenant->schedulingConfig(),
-            ],
-            'brandingRoutes' => [
-                'color' => route('taller.settings.branding.color', ['tenantBySlug' => $tenant->slug]),
-                'logo' => route('taller.settings.branding.logo', ['tenantBySlug' => $tenant->slug]),
-                'deleteLogo' => route('taller.settings.branding.logo.delete', ['tenantBySlug' => $tenant->slug]),
-            ],
-            'canAccessSeo' => $tenant->hasFeature('seo_manager'),
-            'canAccessBranding' => true,
+            'company' => [...$tenant->only('name', 'phone', 'comuna', 'max_discount_without_approval', 'primary_color'), 'logo_url' => $tenant->logoUrl()],
+            'users' => $tenant->users()->get(['id', 'name', 'email']),
         ]);
     }
 
     public function updateCommercial(UpdateTenantCommercialSettingsRequest $request): RedirectResponse
     {
-        $tenant = Tenant::current();
+        Tenant::current()->update($request->validated());
 
-        $tenant->update([
-            'max_discount_without_approval' => $request->validated('max_discount_without_approval'),
-        ]);
-
-        return back()->with('success', 'La política comercial del taller fue actualizada.');
+        return back()->with('success', 'Configuración de la empresa actualizada.');
     }
 }

@@ -22,7 +22,7 @@ class MarketingWhatsAppService
     {
         $isEnabled = filter_var(Setting::get('marketing_whatsapp_enabled', false), FILTER_VALIDATE_BOOL);
         $number = (string) (Setting::get('marketing_whatsapp_number', '') ?? '');
-        $message = (string) (Setting::get('marketing_whatsapp_message', 'Hola, vi TallerFlow y quiero más información.') ?? '');
+        $message = (string) (Setting::get('marketing_whatsapp_message', 'Hola, vi CotizaFlow y quiero más información.') ?? '');
         $sanitizedNumber = preg_replace('/\D+/', '', $number) ?? '';
         $isReady = $isEnabled && filled($sanitizedNumber);
 

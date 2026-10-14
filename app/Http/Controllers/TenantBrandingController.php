@@ -23,7 +23,7 @@ class TenantBrandingController extends Controller
         $tenant = Tenant::current();
         $tenant->update(['primary_color' => $request->primary_color]);
 
-        return back()->with('success', 'Color del taller actualizado correctamente.');
+        return back()->with('success', 'Color de la empresa actualizado correctamente.');
     }
 
     public function uploadLogo(Request $request): RedirectResponse
@@ -62,7 +62,7 @@ class TenantBrandingController extends Controller
 
         $tenant->update(['logo_path' => $path]);
 
-        return back()->with('success', 'Logo del taller actualizado correctamente.');
+        return back()->with('success', 'Logo de la empresa actualizado correctamente.');
     }
 
     public function deleteLogo(): RedirectResponse

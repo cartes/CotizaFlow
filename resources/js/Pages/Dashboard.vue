@@ -1,614 +1,114 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
-import { useTenantRouting } from '@/composables/useTenantRouting';
-import { useFormatting } from '@/composables/useFormatting';
-import AppointmentCalendar from '@/Components/AppointmentCalendar.vue';
-import AppointmentList from '@/Components/AppointmentList.vue';
-import PlanUpgradeBanner from '@/Components/PlanUpgradeBanner.vue';
-import TenantDailySummary from '@/Components/TenantDailySummary.vue';
-import TenantSetupChecklist from '@/Components/TenantSetupChecklist.vue';
-import TenantPublicPageCard from '@/Components/TenantPublicPageCard.vue';
+import { ref } from 'vue';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import TallerLayout from '@/Layouts/TallerLayout.vue';
-
-const props = defineProps({
-    welcome: { type: Object, default: null },
-    dailySummary: { type: Array, default: () => [] },
-    pendingAppointments: { type: Array, default: () => [] },
-    setupChecklist: { type: Object, default: null },
-    initialActivities: {
-        type: Array,
-        default: () => [],
-    },
-    quoteNotifications: {
-        type: Array,
-        default: () => [],
-    },
-    appointments: {
-        type: Array,
-        default: () => [],
-    },
-    todayAppointments: {
-        type: Array,
-        default: () => [],
-    },
-    appointmentNotifications: {
-        type: Array,
-        default: () => [],
-    },
-    overdueInvoices: {
-        type: Array,
-        default: () => [],
-    },
-    today: {
-        type: String,
-        default: '',
-    },
-    calendarRange: {
-        type: Object,
-        default: () => ({}),
-    },
-});
-
-const { page, tenantRouteParams } = useTenantRouting();
-const { formatCurrency } = useFormatting();
-const dismissedKey = 'dismissed_activities';
-
-const tenantId = computed(() => page.props.tenant?.id ?? page.props.auth?.user?.tenant_id ?? null);
-const tenantPublicUrl = computed(() => page.props.tenant?.public_url ?? null);
-const permissions = computed(() => page.props.auth?.user?.permissions ?? []);
-const roles = computed(() => page.props.auth?.user?.roles ?? []);
-const hasPermission = (permission) => permissions.value.includes(permission);
-const canManageAppointments = computed(() => hasPermission('appointments.manage'));
-const canViewWorkOrders = computed(() => ['work-orders.view', 'work-orders.view-own']
-    .some((permission) => hasPermission(permission)));
-const canManageInventory = computed(() => hasPermission('inventory.manage'));
-const canManageCustomers = computed(() => hasPermission('customers.manage'));
-const canViewReports = computed(() => hasPermission('reports.view'));
-const isAdmin = computed(() => roles.value.includes('Admin'));
-const planAccess = computed(() => page.props.planAccess ?? {});
-const aiReceptionEnabled = computed(() => planAccess.value?.ai_reception ?? false);
-const calendarSchedulingEnabled = computed(() => planAccess.value?.calendar_scheduling ?? false);
-const commercialQuotesEnabled = computed(() => planAccess.value?.commercial_quotes_enabled ?? false);
-const commercialReportsEnabled = computed(() => planAccess.value?.commercial_reports_enabled ?? false);
-const calendarUpgradeMessage = computed(() => planAccess.value?.upgrade_messages?.calendar_scheduling ?? 'Mejora tu plan para acceder a esta función');
-const aiReceptionUpgradeMessage = computed(() => planAccess.value?.upgrade_messages?.ai_reception ?? 'Mejora tu plan para acceder a esta función');
-
-const inventoryAlerts = ref([]);
-
-const appointmentToDelete = ref(null);
-const showDeleteAppointmentModal = ref(false);
-
-const confirmDeleteAppointment = (appointment) => {
-    appointmentToDelete.value = appointment;
-    showDeleteAppointmentModal.value = true;
+import ViewTabs from '@/Components/ViewTabs.vue';
+const props = defineProps({ stats: Object, recentQuotes: Array });
+const page = usePage();
+const params = { tenantBySlug: page.props.tenant?.slug };
+const can = (permission) =>
+    page.props.auth.user.is_super_admin ||
+    page.props.auth.user.permissions.includes(permission);
+const money = (value) =>
+    new Intl.NumberFormat('es-CL', {
+        style: 'currency',
+        currency: 'CLP',
+    }).format(Number(value));
+const labels = {
+    draft: 'Borrador',
+    pending_customer: 'Pendiente',
+    accepted: 'Aceptada',
+    rejected: 'Rechazada',
 };
-
-const submitDeleteAppointment = () => {
-    if (!appointmentToDelete.value) return;
-    router.delete(route('appointments.destroy', { ...tenantRouteParams.value, appointment: appointmentToDelete.value.id }), {
-        preserveScroll: true,
-        onSuccess: () => {
-            showDeleteAppointmentModal.value = false;
-            appointmentToDelete.value = null;
-        },
-    });
-};
-
-const getDismissed = () => {
-    if (typeof window === 'undefined' || !window.localStorage) {
-        return [];
-    }
-
-    return JSON.parse(window.localStorage.getItem(dismissedKey) || '[]');
-};
-
-const recentActivities = ref(
-    props.initialActivities.filter((activity) => {
-        const uniqueId = `${activity.work_order_id}-${activity.new_status}`;
-        return !getDismissed().includes(uniqueId);
-    }),
-);
-
-const getStatusLabel = (status) => ({
-    recepcion: 'Recepción',
-    diagnostico: 'En diagnóstico',
-    taller: 'En taller',
-    aviso_cliente: 'Avisar al cliente',
-    esperando_repuestos: 'Esperando repuestos',
-    control_calidad: 'Control de calidad',
-    listo: 'Listo',
-}[status] ?? status);
-
-const dismissActivity = (activity) => {
-    const uniqueId = `${activity.work_order_id}-${activity.new_status || activity.status}`;
-
-    recentActivities.value = recentActivities.value.filter(
-        (value) => `${value.work_order_id}-${value.new_status || value.status}` !== uniqueId,
-    );
-
-    const dismissed = getDismissed();
-
-    if (!dismissed.includes(uniqueId)) {
-        dismissed.push(uniqueId);
-        window.localStorage.setItem(dismissedKey, JSON.stringify(dismissed));
-    }
-};
-
-const quickLinks = computed(() => ([
-    {
-        label: 'Ingresar vehículo',
-        route: 'receptions.create',
-        visible: canManageAppointments.value,
-        iconPath: 'M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z M12 10a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
-    },
-    {
-        label: 'Revisar agenda',
-        route: 'appointments.index',
-        visible: canManageAppointments.value,
-        iconPath: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z',
-    },
-    {
-        label: 'Ver órdenes',
-        route: 'work-orders.index',
-        visible: canViewWorkOrders.value,
-        iconPath: 'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2 M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2 M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2',
-    },
-    {
-        label: 'Crear cotización',
-        route: 'quotes.create',
-        visible: (hasPermission('work-orders.view') || hasPermission('work-orders.view-own')) && commercialQuotesEnabled.value,
-        iconPath: 'M12 5v14m-7-7h14',
-    },
-    {
-        label: 'Inventario',
-        route: 'inventory.index',
-        visible: canManageInventory.value,
-        iconPath: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10',
-    },
-    {
-        label: 'Servicios',
-        route: 'services.index',
-        visible: canManageInventory.value && commercialQuotesEnabled.value,
-        iconPath: 'M9 12h6m-3-3v6m6 5H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3.172a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 12.828 8H18a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2z',
-    },
-    {
-        label: 'Agregar cliente',
-        params: { create: '1' },
-        route: 'clients.index',
-        visible: canManageCustomers.value,
-        iconPath: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 7a4 4 0 1 0 0 .01 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75',
-    },
-    {
-        label: 'Ver reportes',
-        route: 'reports.index',
-        visible: canViewReports.value && commercialReportsEnabled.value,
-        iconPath: 'M9 17v-6m4 6V7m4 10v-3M5 21h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z',
-    },
-]).filter((item) => item.visible));
-
-const notificationStatusClass = (status) => ({
-    pending: 'bg-amber-100 text-amber-800',
-    arrived: 'bg-emerald-100 text-emerald-800',
-    cancelled: 'bg-red-100 text-red-800',
-}[status] ?? 'bg-gray-100 text-gray-700');
-
-onMounted(() => {
-    if (!tenantId.value || !window.Echo?.private) {
-        return;
-    }
-
-    window.Echo.private(`taller.${tenantId.value}`)
-        .listen('.kanban.updated', (event) => {
-            recentActivities.value.unshift(event);
-        })
-        .listen('StockDepleted', (event) => {
-            inventoryAlerts.value.unshift({
-                id: Date.now(),
-                type: 'danger',
-                title: 'Quiebre de Stock',
-                message: `El producto ${event.product.name} (SKU: ${event.product.sku}) se ha quedado sin stock físico.`
-            });
-        })
-        .listen('SafetyStockReached', (event) => {
-            inventoryAlerts.value.unshift({
-                id: Date.now(),
-                type: 'warning',
-                title: 'Stock de Seguridad Alcanzado',
-                message: `El producto ${event.product.name} (SKU: ${event.product.sku}) llegó a su stock mínimo de ${event.product.min_stock}.`
-            });
-        })
-        .listen('MinimumMarginWarning', (event) => {
-            inventoryAlerts.value.unshift({
-                id: Date.now(),
-                type: 'danger',
-                title: 'Alerta de Margen Mínimo',
-                message: `La venta del producto ${event.product.name} tiene un margen muy bajo (${event.item.unit_price} vs costo ${event.product.cost_price}).`
-            });
-        });
-});
-
-onUnmounted(() => {
-    if (!tenantId.value || !window.Echo?.leave) {
-        return;
-    }
-
-    window.Echo.leave(`taller.${tenantId.value}`);
-});
+const activeSection = ref('resumen');
 </script>
-
 <template>
-
-    <Head title="Inicio" />
-
-    <TallerLayout>
-        <div class="space-y-6">
-            <!-- Header -->
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                    <p class="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400">Inicio</p>
-                    <h1 class="mt-1.5 text-3xl font-black tracking-tight text-gray-900">Tu taller hoy
-                    </h1>
-                    <p class="mt-1.5 text-sm font-medium text-gray-500">
-                        {{ new Date().toLocaleDateString('es-CL', {
-                            weekday: 'long', day: 'numeric', month: 'long',
-                        year: 'numeric' }) }}
-                    </p>
-                </div>
-
-            </div>
-
-            <!-- Alertas de Inventario -->
-            <div v-if="inventoryAlerts.length > 0" class="space-y-3">
-                <div v-for="alert in inventoryAlerts" :key="alert.id" :class="[
-                    'rounded-2xl border p-4 flex justify-between items-start',
-                    alert.type === 'danger' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'
-                ]">
-                    <div>
-                        <p :class="['text-sm font-black', alert.type === 'danger' ? 'text-red-900' : 'text-amber-900']">
-                            {{ alert.title }}</p>
-                        <p :class="['mt-1 text-sm', alert.type === 'danger' ? 'text-red-700' : 'text-amber-700']">{{
-                            alert.message }}</p>
-                    </div>
-                    <button @click="inventoryAlerts = inventoryAlerts.filter(a => a.id !== alert.id)"
-                        :class="['text-xs font-bold uppercase tracking-wide px-2 py-1 rounded hover:bg-white/50 transition', alert.type === 'danger' ? 'text-red-600' : 'text-amber-600']">
-                        Descartar
-                    </button>
-                </div>
-            </div>
-
-            <section v-if="welcome && !welcome.completed" class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-orange-200 bg-orange-50 p-5">
-                <div><h2 class="font-bold text-gray-900">Prepara tu taller y tu página web</h2><p class="mt-1 text-sm text-gray-600">Completa tus datos en cuatro pasos. Tu página para recibir solicitudes de hora ya está incluida.</p></div>
-                <Link :href="welcome.url" class="rounded-xl bg-orange-600 px-5 py-3 text-sm font-bold text-white hover:bg-orange-700">{{ welcome.started ? 'Retomar bienvenida' : 'Comenzar bienvenida' }}</Link>
-            </section>
-
-            <TenantDailySummary v-if="dailySummary.length" :items="dailySummary" />
-
-            <!-- Accesos rápidos -->
+    <TallerLayout
+        ><Head title="Inicio" />
+        <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-                <p class="text-[11px] font-black uppercase tracking-[0.25em] text-gray-400">Accesos rápidos</p>
-                <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
-                    data-tour="dashboard-quicklinks">
-                    <Link v-for="item in quickLinks" :key="item.label" :href="route(item.route, { ...tenantRouteParams, ...item.params })"
-                        class="group flex items-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3.5 shadow-sm transition hover:-translate-y-0.5 hover:border-[#FF7A00]/30 hover:shadow-md">
-                        <div
-                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#FF7A00]/10 text-[#FF7A00]">
-                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                stroke-width="1.7">
-                                <path stroke-linecap="round" stroke-linejoin="round" :d="item.iconPath" />
-                            </svg>
-                        </div>
-                        <p class="min-w-0 text-sm font-semibold leading-snug text-gray-900">{{ item.label }}
-                        </p>
-                    </Link>
-                </div>
+                <h1 class="text-3xl font-bold">Tu actividad comercial</h1>
+                <p class="mt-2 text-slate-500">
+                    Cotizaciones, clientes y oportunidades por retomar.
+                </p>
             </div>
-
-            <section v-if="canManageAppointments" id="pending-appointments" class="scroll-mt-6 rounded-2xl border border-gray-100 bg-white p-5 sm:p-6">
-                <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h2 class="text-xl font-bold text-gray-900">Citas por revisar</h2>
-                        <p class="mt-1 text-sm text-gray-500">Solicitudes pendientes de hoy y de los próximos días. Contacta al cliente para coordinar la atención.</p>
-                    </div>
-                    <Link :href="route('appointments.index', tenantRouteParams)" class="text-sm font-semibold text-orange-700">Ver agenda →</Link>
-                </div>
-                <AppointmentList :appointments="pendingAppointments" empty-title="No tienes citas pendientes por revisar" empty-description="Comparte tu página de reservas para recibir nuevas solicitudes." />
-                <p v-if="dailySummary.find(item => item.id === 'pending')?.count > pendingAppointments.length" class="mt-3 text-sm text-gray-500">Mostrando las próximas {{ pendingAppointments.length }} solicitudes pendientes.</p>
-            </section>
-
-            <TenantPublicPageCard
-                v-if="tenantPublicUrl"
-                :public-url="tenantPublicUrl"
-                :settings-url="hasPermission('users.manage') ? route('taller.settings', { ...tenantRouteParams, tab: 'website' }) : null"
-            />
-
-            <div class="space-y-6 rounded-[2rem] border border-gray-100 bg-white/70 p-6 shadow-sm backdrop-blur-sm"
-                data-tour="dashboard-agenda">
-                <div class="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
-                    <div>
-                        <p class="text-[11px] font-black uppercase tracking-[0.25em] text-gray-400">Agendamiento</p>
-                        <h2 class="mt-1 text-2xl font-black text-gray-900">Agenda del taller</h2>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-3">
-                        <Link v-if="canManageAppointments" :href="route('appointments.index', tenantRouteParams)"
-                            class="rounded-full bg-gray-900 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white transition hover:bg-gray-800">
-                            Ver agenda
-                        </Link>
-                        <span class="rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.2em]"
-                            :class="calendarSchedulingEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'">
-                            {{ calendarSchedulingEnabled ? 'Calendario activo' : 'Modo básico' }}
-                        </span>
-                    </div>
-                </div>
-
-                <PlanUpgradeBanner v-if="!calendarSchedulingEnabled" title="Calendario interactivo no disponible"
-                    :message="`Mejora tu plan para acceder a esta función. ${calendarUpgradeMessage}`" />
-
-                <div v-if="calendarSchedulingEnabled" class="space-y-6">
-                    <AppointmentCalendar :appointments="appointments" :today="today" :can-delete="canManageAppointments"
-                        @delete="confirmDeleteAppointment" />
-
-                    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.9fr)]">
-                        <div class="rounded-[2rem] border border-gray-100 bg-gray-50 p-5">
-                            <div class="mb-4 flex items-center justify-between gap-3">
-                                <div>
-                                    <p class="text-[11px] font-black uppercase tracking-[0.25em] text-gray-400">Hoy</p>
-                                    <h3 class="mt-1 text-xl font-black text-gray-900">Citas del día</h3>
-                                </div>
-                                <span class="rounded-full bg-white px-3 py-1 text-xs font-bold text-gray-600">
-                                    {{ todayAppointments.length }} cita{{ todayAppointments.length !== 1 ? 's' : '' }}
-                                </span>
-                            </div>
-
-                            <AppointmentList :appointments="todayAppointments" empty-title="Sin citas para hoy"
-                                empty-description="No hay ingresos programados para la jornada actual."
-                                :show-date="false" :can-delete="canManageAppointments"
-                                @delete="confirmDeleteAppointment" />
-                        </div>
-
-                        <div class="rounded-[2rem] border border-gray-100 bg-gray-50 p-5">
-                            <div class="mb-4">
-                                <p class="text-[11px] font-black uppercase tracking-[0.25em] text-gray-400">Recepción
-                                    inteligente</p>
-                                <h3 class="mt-1 text-xl font-black text-gray-900">Estado del escáner</h3>
-                            </div>
-
-                            <PlanUpgradeBanner v-if="!aiReceptionEnabled" title="Escáner con IA no disponible"
-                                :message="`Mejora tu plan para acceder a esta función. ${aiReceptionUpgradeMessage}`"
-                                tone="slate" />
-
-                            <div v-else class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-                                <p class="text-sm font-black text-emerald-800">Recepción asistida habilitada</p>
-                                <p class="mt-1 text-sm text-emerald-700">
-                                    Puedes usar el escáner de patente desde Recepción y desde el módulo de Agendamiento.
-                                </p>
-                                <Link :href="route('receptions.create', tenantRouteParams)"
-                                    class="mt-4 inline-flex rounded-full bg-emerald-600 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white transition hover:bg-emerald-700">
-                                    Abrir recepción
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div v-else class="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
-                    <div class="rounded-[2rem] border border-gray-100 bg-gray-50 p-5">
-                        <div class="mb-4 flex items-center justify-between gap-3">
-                            <div>
-                                <p class="text-[11px] font-black uppercase tracking-[0.25em] text-gray-400">Agenda
-                                    básica</p>
-                                <h3 class="mt-1 text-xl font-black text-gray-900">Listado de citas</h3>
-                            </div>
-                            <span class="rounded-full bg-white px-3 py-1 text-xs font-bold text-gray-600">
-                                {{ appointments.length }} cita{{ appointments.length !== 1 ? 's' : '' }}
-                            </span>
-                        </div>
-
-                        <AppointmentList :appointments="appointments" empty-title="Sin citas registradas"
-                            empty-description="No hay citas agendadas en el periodo actual."
-                            :can-delete="canManageAppointments" @delete="confirmDeleteAppointment" />
-                    </div>
-
-                    <div class="rounded-[2rem] border border-gray-100 bg-gray-50 p-5">
-                        <div class="mb-4">
-                            <p class="text-[11px] font-black uppercase tracking-[0.25em] text-gray-400">Notificaciones
-                            </p>
-                            <h3 class="mt-1 text-xl font-black text-gray-900">Próximos ingresos</h3>
-                        </div>
-
-                        <div v-if="appointmentNotifications.length === 0"
-                            class="rounded-2xl border border-dashed border-gray-200 bg-white px-4 py-8 text-center">
-                            <p class="text-sm font-bold text-gray-500">Sin movimientos programados</p>
-                            <p class="mt-1 text-sm text-gray-400">Aquí verás un resumen rápido de las próximas citas.
-                            </p>
-                        </div>
-
-                        <ul v-else class="flex flex-col gap-3">
-                            <li v-for="notification in appointmentNotifications" :key="notification.id"
-                                class="rounded-2xl border border-gray-100 bg-white p-4">
-                                <div class="flex items-start justify-between gap-3">
-                                    <div>
-                                        <p class="text-sm font-black text-gray-900">{{ notification.title }}</p>
-                                        <p class="mt-1 text-sm text-gray-500">{{ notification.description }}</p>
-                                    </div>
-                                    <span :class="notificationStatusClass(notification.status)"
-                                        class="rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wide">
-                                        {{ notification.status }}
-                                    </span>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.9fr)]">
-                <div class="rounded-[2rem] border border-gray-100 bg-white/70 p-6 shadow-sm backdrop-blur-sm">
-                    <div class="mb-5 flex items-center justify-between gap-3">
-                        <div>
-                            <p class="text-[11px] font-black uppercase tracking-[0.25em] text-gray-400">Actividad en
-                                tiempo real</p>
-                            <h2 class="mt-1 text-2xl font-black text-gray-900">Movimientos del tablero</h2>
-                        </div>
-                        <span
-                            class="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-orange-600">Live</span>
-                    </div>
-
-                    <div v-if="recentActivities.length === 0"
-                        class="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-10 text-center">
-                        <p class="text-sm font-bold text-gray-500">Esperando actualizaciones del tablero</p>
-                        <p class="mt-1 text-sm text-gray-400">Los cambios de estado aparecerán aquí automáticamente.</p>
-                    </div>
-
-                    <ul v-else class="flex flex-col gap-3">
-                        <li v-for="activity in recentActivities"
-                            :key="`${activity.work_order_id}-${activity.new_status || activity.status}`"
-                            class="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                            <div class="min-w-0">
-                                <p class="truncate text-sm font-black text-gray-900">
-                                    {{ activity.vehicle }} <span class="font-medium text-gray-400">({{ activity.plate
-                                        }})</span>
-                                </p>
-                                <p class="mt-1 text-xs text-gray-500">
-                                    Estado actualizado a
-                                    <span class="font-black uppercase text-gray-700">{{
-                                        getStatusLabel(activity.new_status || activity.status) }}</span>
-                                </p>
-                            </div>
-
-                            <button type="button"
-                                class="rounded-full bg-white px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 transition hover:text-orange-600"
-                                @click="dismissActivity(activity)">
-                                Ocultar
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="rounded-[2rem] border border-gray-100 bg-white/70 p-6 shadow-sm backdrop-blur-sm">
-                    <div class="mb-5 flex items-center justify-between gap-3">
-                        <div>
-                            <p class="text-[11px] font-black uppercase tracking-[0.25em] text-gray-400">Comercial</p>
-                            <h2 class="mt-1 text-2xl font-black text-gray-900">Notificaciones de cotización</h2>
-                        </div>
-                        <Link v-if="canViewReports && commercialReportsEnabled"
-                            :href="route('reports.index', tenantRouteParams)"
-                            class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-emerald-600">
-                            Ver reportes
-                        </Link>
-                    </div>
-
-                    <div v-if="quoteNotifications.length === 0"
-                        class="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-10 text-center">
-                        <p class="text-sm font-bold text-gray-500">Sin eventos comerciales recientes</p>
-                        <p class="mt-1 text-sm text-gray-400">Las respuestas y envíos de cotización aparecerán aquí.</p>
-                    </div>
-
-                    <ul v-else class="flex flex-col gap-3">
-                        <li v-for="notification in quoteNotifications" :key="notification.id"
-                            class="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                            <p class="text-sm font-black text-gray-900">{{ notification.description }}</p>
-                            <p class="mt-1 text-xs text-gray-500">
-                                {{ notification.client }} · {{ notification.plate }} · OT #{{ notification.work_order_id
-                                }}
-                            </p>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <div v-if="isAdmin"
-                class="rounded-[2rem] border border-gray-100 bg-white/70 p-6 shadow-sm backdrop-blur-sm">
-                <div class="mb-5 flex items-center justify-between gap-3">
-                    <div>
-                        <p class="text-[11px] font-black uppercase tracking-[0.25em] text-gray-400">Cobranza</p>
-                        <h2 class="mt-1 text-2xl font-black text-gray-900">Facturas atrasadas</h2>
-                    </div>
-                    <Link :href="route('invoices.index', tenantRouteParams)"
-                        class="rounded-full bg-rose-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-rose-600">
-                        Ver facturas
-                    </Link>
-                </div>
-
-                <div v-if="overdueInvoices.length === 0"
-                    class="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-10 text-center">
-                    <p class="text-sm font-bold text-gray-500">Sin facturas atrasadas</p>
-                    <p class="mt-1 text-sm text-gray-400">Aquí aparecerán los clientes con mora activa.</p>
-                </div>
-
-                <ul v-else class="grid gap-3 lg:grid-cols-2">
-                    <li v-for="invoice in overdueInvoices" :key="invoice.id"
-                        class="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                        <div class="flex items-start justify-between gap-3">
-                            <div>
-                                <p class="text-sm font-black text-gray-900">{{ invoice.invoice_number || `Factura
-                                    #${invoice.id}` }}</p>
-                                <p class="mt-1 text-sm text-gray-500">{{ invoice.client_name }}</p>
-                                <p class="mt-1 text-xs font-bold uppercase tracking-wide text-rose-500">
-                                    {{ invoice.days_overdue }} día<span v-if="invoice.days_overdue !== 1">s</span> de
-                                    atraso
-                                </p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-sm font-black text-rose-500">{{ formatCurrency(invoice.amount_due) }}</p>
-                                <p class="mt-1 text-xs text-gray-400">Vence {{ invoice.due_at }}</p>
-                            </div>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-
-            <TenantSetupChecklist v-if="setupChecklist" :checklist="setupChecklist" />
+            <Link
+                v-if="can('quotes.manage')"
+                :href="route('quotes.create', params)"
+                class="rounded-xl bg-orange-500 px-5 py-3 font-semibold text-white"
+                >Nueva cotización</Link
+            >
         </div>
-        <!-- Delete Appointment Confirmation Modal -->
-        <div v-if="showDeleteAppointmentModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="showDeleteAppointmentModal = false">
-            </div>
-
-            <div
-                class="relative w-full max-w-md overflow-hidden rounded-[2.5rem] border border-gray-100 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-300">
-                <div class="text-center">
-                    <div
-                        class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-600">
-                        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-black uppercase tracking-tight text-gray-900">¿Eliminar cita?</h3>
-                    <p class="mt-2 text-sm font-medium text-gray-500">Esta acción no se puede deshacer. Se eliminará la
-                        cita del sistema.</p>
-                </div>
-
-                <div v-if="appointmentToDelete"
-                    class="mt-5 rounded-2xl bg-gray-50 p-4 space-y-2.5 text-xs text-gray-700 font-medium border border-gray-100">
-                    <div class="flex justify-between">
-                        <span class="text-gray-400 uppercase tracking-widest text-[9px] font-bold">Patente:</span>
-                        <span class="font-mono font-bold text-gray-900 tracking-wider">{{ appointmentToDelete.plate
-                            }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400 uppercase tracking-widest text-[9px] font-bold">Cliente:</span>
-                        <span class="font-bold text-gray-900">{{ appointmentToDelete.client?.name || 'Sin registrar'
-                            }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400 uppercase tracking-widest text-[9px] font-bold">Fecha y hora:</span>
-                        <span class="font-bold text-gray-900">{{ appointmentToDelete.date }} {{ appointmentToDelete.time
-                            }} hrs</span>
-                    </div>
-                </div>
-
-                <div class="mt-6 flex gap-3">
-                    <button type="button"
-                        class="flex-1 rounded-2xl bg-gray-100 py-3.5 text-xs font-black uppercase tracking-widest text-gray-600 transition-colors hover:bg-gray-200"
-                        @click="showDeleteAppointmentModal = false">Cancelar</button>
-                    <button type="button"
-                        class="flex-1 rounded-2xl bg-red-600 py-3.5 text-xs font-black uppercase tracking-widest text-white transition-colors hover:bg-red-700"
-                        @click="submitDeleteAppointment">Eliminar cita</button>
-                </div>
-            </div>
+        <ViewTabs
+            v-model="activeSection"
+            :items="[
+                { value: 'resumen', label: 'Resumen' },
+                { value: 'actividad', label: 'Actividad' },
+            ]"
+        />
+        <div
+            v-show="activeSection === 'resumen'"
+            role="tabpanel"
+            aria-label="Resumen"
+            class="my-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5"
+        >
+            <article
+                v-for="metric in [
+                    ['Clientes', stats.clients],
+                    ['Borradores', stats.drafts],
+                    ['Pendientes', stats.pending],
+                    ['Aceptadas', stats.accepted],
+                    ['Monto aceptado', money(stats.accepted_amount)],
+                ]"
+                :key="metric[0]"
+                class="cf-metric-card rounded-2xl border border-slate-200 bg-white p-6"
+            >
+                <p class="text-sm text-slate-500">{{ metric[0] }}</p>
+                <p class="mt-3 text-2xl font-semibold">{{ metric[1] }}</p>
+            </article>
         </div>
-    </TallerLayout>
+        <section
+            v-show="activeSection === 'actividad'"
+            role="tabpanel"
+            aria-label="Actividad"
+            class="rounded-2xl border border-slate-200 bg-white p-6"
+        >
+            <div class="flex items-center justify-between gap-4">
+                <h2 class="text-xl font-semibold">Cotizaciones recientes</h2>
+                <Link
+                    v-if="can('quotes.view')"
+                    :href="route('quotes.follow-up', params)"
+                    class="text-sm font-semibold text-orange-600"
+                    >Revisar pendientes →</Link
+                >
+            </div>
+            <ul
+                v-if="recentQuotes.length"
+                class="mt-5 divide-y divide-slate-100"
+            >
+                <li
+                    v-for="quote in recentQuotes"
+                    :key="quote.id"
+                    class="flex flex-wrap justify-between gap-3 py-4"
+                >
+                    <Link
+                        v-if="can('quotes.view')"
+                        :href="
+                            route('quotes.show', { ...params, quote: quote.id })
+                        "
+                        class="font-medium"
+                        >#{{ quote.id }} · {{ quote.client?.name }}</Link
+                    ><span v-else class="font-medium"
+                        >#{{ quote.id }} · {{ quote.client?.name }}</span
+                    ><span
+                        >{{ labels[quote.status] }} ·
+                        {{ money(quote.total_amount) }}</span
+                    >
+                </li>
+            </ul>
+            <p v-else class="py-10 text-slate-500">
+                Aún no hay cotizaciones. Agrega un cliente y prepara la primera.
+            </p>
+        </section></TallerLayout
+    >
 </template>

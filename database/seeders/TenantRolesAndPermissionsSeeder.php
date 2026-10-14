@@ -11,103 +11,16 @@ use Spatie\Permission\PermissionRegistrar;
 
 class TenantRolesAndPermissionsSeeder extends Seeder
 {
-    /**
-     * All permissions grouped by resource.
-     *
-     * @var array<string, list<string>>
-     */
-    private const PERMISSIONS = [
-        'appointments' => ['appointments.manage'],
-        'customers' => ['customers.manage'],
-        'vehicles' => ['vehicles.manage'],
-        'work_orders' => [
-            'work-orders.view',
-            'work-orders.view-own',
-            'work-orders.update-status',
-            'work-orders.manage-items',
-            'work-orders.delete',
-        ],
-        'inventory' => ['inventory.manage'],
-        'branches' => ['branches.manage'],
-        'reports' => ['reports.view'],
-        'financials' => ['financials.view'],
-        'users' => ['users.manage'],
-        'roles' => ['roles.manage'],
-    ];
-
-    /**
-     * Permissions granted to each role (tenant-scoped).
-     *
-     * @var array<string, list<string>>
-     */
-    private const ROLE_PERMISSIONS = [
-        'Admin' => [
-            'appointments.manage',
-            'customers.manage',
-            'vehicles.manage',
-            'work-orders.view',
-            'work-orders.view-own',
-            'work-orders.update-status',
-            'work-orders.manage-items',
-            'work-orders.delete',
-            'inventory.manage',
-            'branches.manage',
-            'reports.view',
-            'financials.view',
-            'users.manage',
-            'roles.manage',
-        ],
-        'Recepcionista' => [
-            'appointments.manage',
-            'customers.manage',
-            'vehicles.manage',
-            'work-orders.view',
-            'financials.view',
-        ],
-        'Supervisor' => [
-            'appointments.manage',
-            'customers.manage',
-            'vehicles.manage',
-            'work-orders.view',
-            'work-orders.update-status',
-            'work-orders.manage-items',
-            'work-orders.delete',
-            'inventory.manage',
-            'reports.view',
-            'financials.view',
-        ],
-        'Jefe' => [
-            'appointments.manage',
-            'customers.manage',
-            'vehicles.manage',
-            'work-orders.view',
-            'work-orders.update-status',
-            'work-orders.manage-items',
-            'work-orders.delete',
-            'inventory.manage',
-            'reports.view',
-            'financials.view',
-        ],
-        'Mecanico' => [
-            'work-orders.view-own',
-            'work-orders.update-status',
-            'work-orders.manage-items',
-        ],
-    ];
-
     public function run(): void
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-
-        $allPermissions = array_merge(...array_values(self::PERMISSIONS));
-
-        foreach ($allPermissions as $permissionName) {
-            Permission::firstOrCreate(['name' => $permissionName, 'guard_name' => 'web']);
+        $commercial = ['customers.manage', 'inventory.manage', 'quotes.view', 'quotes.manage', 'quotes.send'];
+        $all = [...$commercial, 'users.manage'];
+        foreach ($all as $permission) {
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
-
-        foreach (self::ROLE_PERMISSIONS as $roleName => $permissions) {
-            $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
-            $role->syncPermissions($permissions);
+        foreach (['Admin' => $all, 'Supervisor' => $commercial, 'Vendedor' => $commercial] as $name => $permissions) {
+            Role::firstOrCreate(['name' => $name, 'guard_name' => 'web'])->syncPermissions($permissions);
         }
     }
 }

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Models\Tenant;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class AddQuoteItemRequest extends FormRequest
@@ -21,8 +23,8 @@ class AddQuoteItemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'product_id' => ['nullable', 'integer', 'exists:products,id'],
-            'service_id' => ['nullable', 'integer', 'exists:services,id'],
+            'product_id' => ['nullable', 'integer', Rule::exists('products', 'id')->where('tenant_id', Tenant::current()?->id)],
+            'service_id' => ['nullable', 'integer', Rule::exists('services', 'id')->where('tenant_id', Tenant::current()?->id)],
             'description' => ['nullable', 'string', 'max:255'],
             'quantity' => ['required', 'numeric', 'min:0.01'],
             'unit_price' => ['nullable', 'numeric', 'min:0'],
@@ -42,7 +44,7 @@ class AddQuoteItemRequest extends FormRequest
             }
 
             if (! $hasProduct && ! $hasService && ! $hasDescription) {
-                $validator->errors()->add('description', 'Debes ingresar una descripción o seleccionar un repuesto o servicio.');
+                $validator->errors()->add('description', 'Debes ingresar una descripción o seleccionar un producto o servicio.');
             }
         });
     }

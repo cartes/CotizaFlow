@@ -40,7 +40,7 @@ class WorkbookImportController extends Controller
     {
         return Excel::download(
             new ProductTemplateExport,
-            'plantilla-repuestos.xlsx',
+            'plantilla-productos.xlsx',
         );
     }
 

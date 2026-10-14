@@ -29,11 +29,6 @@ class StoreManualQuoteRequest extends FormRequest
                 'integer',
                 Rule::exists('clients', 'id')->where('tenant_id', $tenantId),
             ],
-            'vehicle_id' => [
-                'required',
-                'integer',
-                Rule::exists('vehicles', 'id')->where('client_id', $this->input('client_id')),
-            ],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }
@@ -46,8 +41,6 @@ class StoreManualQuoteRequest extends FormRequest
         return [
             'client_id.required' => 'Debes seleccionar un cliente.',
             'client_id.exists' => 'El cliente seleccionado no es válido.',
-            'vehicle_id.required' => 'Debes seleccionar un vehículo del cliente.',
-            'vehicle_id.exists' => 'El vehículo seleccionado no pertenece al cliente indicado.',
         ];
     }
 }

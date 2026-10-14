@@ -10,7 +10,7 @@ class PathOrDomainTenantFinder extends DomainTenantFinder
 {
     public function findForRequest(Request $request): ?IsTenant
     {
-        if ($request->segment(1) === 'taller' && filled($request->segment(2))) {
+        if ($request->segment(1) === 'empresa' && filled($request->segment(2))) {
             return app(IsTenant::class)::query()
                 ->where('slug', $request->segment(2))
                 ->first();

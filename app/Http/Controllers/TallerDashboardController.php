@@ -4,215 +4,37 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Models\Appointment;
-use App\Models\ClientInvoice;
-use App\Models\QuoteEvent;
-use App\Models\Tenant;
-use App\Models\User;
-use App\Models\WorkOrder;
-use App\Services\BranchContext;
-use App\Services\PlanFeatureService;
-use App\Services\TenantDailyOverviewService;
-use App\Services\TenantSetupChecklistService;
-use App\Services\TenantWelcomeService;
-use Carbon\CarbonInterface;
-use Illuminate\Http\RedirectResponse;
+use App\Models\Client;
+use App\Models\Quote;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Inertia\Inertia;
-use Inertia\Response as InertiaResponse;
+use Inertia\Response;
 
 class TallerDashboardController extends Controller
 {
-    public function __invoke(Request $request, TenantSetupChecklistService $checklist, TenantDailyOverviewService $dailyOverview, TenantWelcomeService $welcome): InertiaResponse|Response|RedirectResponse
+    public function __invoke(Request $request): Response
     {
-        $tenant = Tenant::current();
-
-        if (! $tenant) {
-            abort(404);
-        }
-
-        /** @var User $user */
-        $user = $request->user();
-
-        if (! $user->is_super_admin && $user->tenant_id !== $tenant->id) {
-            abort(403, 'No tienes acceso a este taller.');
-        }
-
-        if (! $user->is_super_admin && $user->can('users.manage') && $welcome->shouldRedirect($tenant)) {
-            return redirect()->route('taller.welcome.show', ['tenantBySlug' => $tenant->slug]);
-        }
-
-        $initialActivities = WorkOrder::query()
-            ->with('vehicle')
-            ->latest('updated_at')
-            ->limit(5)
-            ->get()
-            ->map(fn (WorkOrder $order): array => [
-                'work_order_id' => $order->id,
-                'plate' => $order->vehicle->plate ?? 'N/A',
-                'vehicle' => trim(($order->vehicle->brand ?? '').' '.($order->vehicle->model ?? '')),
-                'new_status' => $order->status,
-                'timestamp' => $order->updated_at->toISOString(),
-            ]);
-
-        $quoteNotifications = $tenant->hasFeature(PlanFeatureService::FEATURE_COMMERCIAL_REPORTS)
-            ? QuoteEvent::query()
-                ->with('workOrder.vehicle.client')
-                ->latest()
-                ->limit(8)
-                ->get()
-                ->map(fn (QuoteEvent $event): array => [
-                    'id' => $event->id,
-                    'description' => $event->description,
-                    'event_type' => $event->event_type,
-                    'actor_type' => $event->actor_type,
-                    'timestamp' => $event->created_at->toISOString(),
-                    'work_order_id' => $event->work_order_id,
-                    'plate' => $event->workOrder?->vehicle?->plate ?? 'N/A',
-                    'client' => $event->workOrder?->vehicle?->client?->name ?? 'Cliente',
-                ])
-            : collect();
-
-        $activeBranchId = app(BranchContext::class)->id();
-
-        $calendarStart = now()->startOfMonth()->startOfDay();
-        $calendarEnd = now()->endOfMonth()->endOfDay();
-
-        $appointments = Appointment::query()
-            ->with(['client', 'vehicle'])
-            ->when($activeBranchId !== null, fn ($query) => $query->where('branch_id', $activeBranchId))
-            ->whereBetween('appointment_date', [$calendarStart, $calendarEnd])
-            ->orderBy('appointment_date')
-            ->get();
-
-        $serializedAppointments = $appointments
-            ->map(fn (Appointment $appointment): array => $this->serializeAppointment($appointment))
-            ->values();
-
-        $todayAppointments = $appointments
-            ->filter(fn (Appointment $appointment): bool => $appointment->appointment_date->isToday())
-            ->map(fn (Appointment $appointment): array => $this->serializeAppointment($appointment))
-            ->values();
-
-        $appointmentNotifications = $appointments
-            ->filter(fn (Appointment $appointment): bool => $appointment->appointment_date->isToday() || $appointment->appointment_date->isFuture())
-            ->take(5)
-            ->map(fn (Appointment $appointment): array => $this->serializeNotification($appointment))
-            ->values();
-
-        $overdueInvoices = $user->can('financials.view') && $tenant->hasFeature(PlanFeatureService::FEATURE_SALES_MANAGEMENT)
-            ? ClientInvoice::query()
-                ->with('client')
-                ->whereIn('status', [
-                    ClientInvoice::STATUS_PENDING,
-                    ClientInvoice::STATUS_PARTIAL,
-                    ClientInvoice::STATUS_OVERDUE,
-                ])
-                ->whereDate('due_at', '<', now()->toDateString())
-                ->where('amount_due', '>', 0)
-                ->orderBy('due_at')
-                ->limit(5)
-                ->get()
-                ->map(fn (ClientInvoice $invoice): array => [
-                    'id' => $invoice->id,
-                    'invoice_number' => $invoice->invoice_number,
-                    'client_name' => $invoice->client?->name ?? 'Cliente',
-                    'amount_due' => (float) $invoice->amount_due,
-                    'due_at' => $invoice->due_at?->toDateString(),
-                    'days_overdue' => (int) $invoice->due_at->diffInDays(now()),
-                ])
-            : collect();
-
-        $overview = $dailyOverview->forTenant($tenant, $user, $appointments->filter(fn (Appointment $appointment): bool => $appointment->appointment_date->isToday() && $appointment->status !== 'cancelled')->count());
+        $canViewQuotes = $request->user()->can('quotes.view');
+        $quotes = Quote::query()->whereNotNull('client_id')->when(! $canViewQuotes, fn ($query) => $query->whereRaw('1 = 0'));
 
         return Inertia::render('Dashboard', [
-            'welcome' => $user->can('users.manage') ? [
-                'completed' => ! empty($tenant->setup_checklist['welcome']['completed_at']),
-                'url' => route('taller.welcome.show', ['tenantBySlug' => $tenant->slug]),
-                'started' => ($tenant->setup_checklist['welcome']['next_step'] ?? 1) > 1,
-            ] : null,
-            'dailySummary' => $overview['summary'],
-            'pendingAppointments' => $overview['pending_appointments']->map(fn (Appointment $appointment): array => $this->serializeAppointment($appointment))->values(),
-            'setupChecklist' => $user->can('users.manage') ? $checklist->forTenant($tenant) : null,
-            'initialActivities' => $initialActivities,
-            'quoteNotifications' => $quoteNotifications,
-            'appointments' => $serializedAppointments,
-            'todayAppointments' => $todayAppointments,
-            'appointmentNotifications' => $appointmentNotifications,
-            'overdueInvoices' => $overdueInvoices,
-            'today' => now()->toDateString(),
-            'tenant' => [
-                ...$tenant->only('id', 'name', 'slug'),
-                'public_url' => route('taller.landing', ['tenantBySlug' => $tenant->slug]),
+            'stats' => [
+                'clients' => $request->user()->can('customers.manage') ? Client::query()->count() : 0,
+                'drafts' => (clone $quotes)->where('status', Quote::STATUS_DRAFT)->count(),
+                'pending' => (clone $quotes)->where('status', Quote::STATUS_PENDING_CUSTOMER)->count(),
+                'accepted' => (clone $quotes)->where('status', Quote::STATUS_ACCEPTED)->count(),
+                'accepted_amount' => (clone $quotes)->where('status', Quote::STATUS_ACCEPTED)->sum('total_amount'),
             ],
-            'calendarRange' => [
-                'start' => $calendarStart->toDateString(),
-                'end' => $calendarEnd->toDateString(),
-            ],
+            'recentQuotes' => (clone $quotes)->with('client:id,name')->latest()->limit(8)->get(),
         ]);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function serializeAppointment(Appointment $appointment): array
+    public function followUp(): Response
     {
-        $clientName = $appointment->client?->name ?? $appointment->customer_name ?? 'Cliente sin registrar';
-        $plate = $appointment->plate ?: $appointment->vehicle?->plate ?? 'N/A';
-
-        return [
-            'id' => $appointment->id,
-            'plate' => $plate,
-            'date' => $appointment->appointment_date->toDateString(),
-            'time' => $appointment->appointment_date->format('H:i'),
-            'status' => $appointment->status,
-            'notes' => $appointment->notes,
-            'scheduled_at' => $appointment->appointment_date->toISOString(),
-            'client' => [
-                'id' => $appointment->client?->id,
-                'name' => $clientName,
-                'rut' => $appointment->client?->rut,
-                'phone' => $appointment->client?->phone ?? $appointment->phone,
-            ],
-            'vehicle' => $appointment->vehicle ? [
-                'id' => $appointment->vehicle->id,
-                'plate' => $appointment->vehicle->plate,
-                'brand' => $appointment->vehicle->brand,
-                'model' => $appointment->vehicle->model,
-                'color' => $appointment->vehicle->color,
-            ] : null,
-        ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function serializeNotification(Appointment $appointment): array
-    {
-        $clientName = $appointment->client?->name ?? $appointment->customer_name ?? 'Cliente sin registrar';
-        $plate = $appointment->plate ?: $appointment->vehicle?->plate ?? 'N/A';
-
-        return [
-            'id' => $appointment->id,
-            'title' => "Cita de {$clientName}",
-            'description' => "Patente {$plate} · {$this->formatDateLabel($appointment->appointment_date)} a las {$appointment->appointment_date->format('H:i')} hrs",
-            'status' => $appointment->status,
-            'date' => $appointment->appointment_date->toDateString(),
-            'time' => $appointment->appointment_date->format('H:i'),
-        ];
-    }
-
-    private function formatDateLabel(CarbonInterface $date): string
-    {
-        if ($date->isToday()) {
-            return 'hoy';
-        }
-
-        if ($date->isTomorrow()) {
-            return 'mañana';
-        }
-
-        return $date->locale('es_CL')->translatedFormat('d \d\e M');
+        return Inertia::render('Quotes/Index', [
+            'quotes' => Quote::query()->whereNotNull('client_id')->where('status', Quote::STATUS_PENDING_CUSTOMER)->with('client:id,name,rut')->orderBy('sent_at')->paginate(15),
+            'filters' => ['search' => ''],
+            'followUp' => true,
+        ]);
     }
 }

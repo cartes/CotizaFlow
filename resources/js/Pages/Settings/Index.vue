@@ -1,97 +1,130 @@
 <script setup>
-import { computed } from 'vue';
-import { Head } from '@inertiajs/vue3';
-import { useTenantRouting } from '@/composables/useTenantRouting';
-import SettingsLayout from '@/Layouts/SettingsLayout.vue';
-import TenantSetupChecklist from '@/Components/TenantSetupChecklist.vue';
-import TenantPublicPageCard from '@/Components/TenantPublicPageCard.vue';
-import UsersTab from './Partials/UsersTab.vue';
-import BranchesTab from './Partials/BranchesTab.vue';
-import CommercialTab from './Partials/CommercialTab.vue';
-import SeoTab from './Partials/SeoTab.vue';
-import SchedulingTab from './Partials/SchedulingTab.vue';
-import BrandingTab from './Partials/BrandingTab.vue';
-
-const { page } = useTenantRouting();
-const user = computed(() => page.props.auth.user ?? null);
-const permissions = computed(() => user.value?.permissions ?? []);
-const userRoles = computed(() => user.value?.roles ?? []);
-const tenantContext = computed(() => page.props.tenantContext ?? null);
-const currentTab = computed(() => new URL(page.url, window.location.origin).searchParams.get('tab'));
-const props = defineProps({
-    setupChecklist: Object,
-    users: Array,
-    branches: Array,
-    roles: Array,
-    planMaxUsers: Number,
-    currentUserCount: Number,
-    canCreateBranch: Boolean,
-    branchLimitInfo: String,
-    tenant: Object,
-    brandingRoutes: Object,
-    canAccessSeo: Boolean,
-    canAccessBranding: Boolean,
+import { ref } from 'vue';
+import { Head, useForm, usePage } from '@inertiajs/vue3';
+import TallerLayout from '@/Layouts/TallerLayout.vue';
+import ViewTabs from '@/Components/ViewTabs.vue';
+const props = defineProps({ company: Object, users: Array });
+const params = { tenantBySlug: usePage().props.tenant?.slug };
+const form = useForm({
+    name: props.company.name,
+    phone: props.company.phone,
+    comuna: props.company.comuna,
+    max_discount_without_approval: props.company.max_discount_without_approval,
 });
-
-const checklistStepId = computed(() => ({ branches: 'business_details', branding: 'branding_contact', seo: 'branding_contact', scheduling: 'scheduling' })[activeTab.value] ?? null);
-const activeTab = computed(() => currentTab.value ?? 'users');
-const hasPermission = (permission) => permissions.value.includes(permission);
-const canAccessRoles = computed(() => (
-    (userRoles.value.includes('Admin') || hasPermission('users.manage'))
-    && (tenantContext.value?.features ?? []).includes('custom_roles')
-));
+const logo = useForm({ logo: null });
+const activeSection = ref('empresa');
 </script>
-
 <template>
-    <Head title="Configuración del Taller" />
-    <SettingsLayout
-        :current-section="activeTab"
-        :current-user-count="currentUserCount"
-        :plan-max-users="planMaxUsers"
-        :branches-count="branches.length"
+    <TallerLayout
+        ><Head title="Configuración" />
+        <h1 class="text-3xl font-bold">Configuración de tu empresa</h1>
+        <ViewTabs
+            v-model="activeSection"
+            :items="[
+                { value: 'empresa', label: 'Empresa' },
+                { value: 'identidad', label: 'Identidad' },
+                { value: 'equipo', label: 'Equipo' },
+            ]"
+        />
+        <form
+            v-show="activeSection === 'empresa'"
+            role="tabpanel"
+            aria-label="Empresa"
+            @submit.prevent="
+                form.patch(route('taller.settings.commercial.update', params))
+            "
+            class="mt-6 grid max-w-3xl gap-4 rounded-2xl border border-slate-200 bg-white p-6 sm:grid-cols-2"
+        >
+            <label class="flex flex-col gap-2"
+                >Nombre de la empresa<input
+                    v-model="form.name"
+                    required
+                    class="rounded-lg border-slate-300" /></label
+            ><label class="flex flex-col gap-2"
+                >Teléfono<input
+                    v-model="form.phone"
+                    class="rounded-lg border-slate-300" /></label
+            ><label class="flex flex-col gap-2"
+                >Ciudad o comuna<input
+                    v-model="form.comuna"
+                    class="rounded-lg border-slate-300" /></label
+            ><label class="flex flex-col gap-2"
+                >Descuento máximo sin aprobación (%)<input
+                    v-model="form.max_discount_without_approval"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    required
+                    class="rounded-lg border-slate-300"
+            /></label>
+            <p
+                v-for="(error, key) in form.errors"
+                :key="key"
+                class="text-red-600"
+            >
+                {{ error }}
+            </p>
+            <button
+                :disabled="form.processing"
+                class="justify-self-start rounded-xl bg-orange-500 px-5 py-3 text-white"
+            >
+                Guardar cambios
+            </button>
+        </form>
+        <section
+            v-show="activeSection === 'identidad'"
+            role="tabpanel"
+            aria-label="Identidad"
+            class="mt-6 max-w-3xl rounded-2xl border border-slate-200 bg-white p-6"
+        >
+            <h2 class="text-xl font-semibold">Logo de la empresa</h2>
+            <img
+                v-if="company.logo_url"
+                :src="company.logo_url"
+                :alt="company.name"
+                class="my-4 h-16 object-contain"
+            />
+            <form
+                @submit.prevent="
+                    logo.post(route('taller.settings.branding.logo', params), {
+                        forceFormData: true,
+                    })
+                "
+                class="mt-4 flex flex-wrap items-center gap-3"
+            >
+                <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    aria-label="Logo de la empresa"
+                    @change="logo.logo = $event.target.files[0]"
+                /><button
+                    :disabled="!logo.logo || logo.processing"
+                    class="rounded-lg border border-slate-300 px-4 py-2"
+                >
+                    Subir logo
+                </button>
+                <p
+                    v-for="(error, key) in logo.errors"
+                    :key="key"
+                    class="text-red-600"
+                >
+                    {{ error }}
+                </p>
+            </form>
+        </section>
+        <section
+            v-show="activeSection === 'equipo'"
+            role="tabpanel"
+            aria-label="Equipo"
+            class="mt-6 max-w-3xl rounded-2xl border border-slate-200 bg-white p-6"
+        >
+            <h2 class="text-xl font-semibold">Personas de tu empresa</h2>
+            <ul class="mt-4 flex flex-col gap-3">
+                <li v-for="user in users" :key="user.id">
+                    {{ user.name }} · {{ user.email }}
+                </li>
+            </ul>
+        </section></TallerLayout
     >
-        <TenantSetupChecklist
-            v-if="setupChecklist && (activeTab === 'website' || checklistStepId)"
-            :checklist="setupChecklist"
-            :step-id="checklistStepId"
-        />
-        <div v-if="activeTab === 'website'" class="space-y-6">
-            <TenantPublicPageCard :public-url="tenant.public_url" />
-            <div class="rounded-2xl border border-gray-100 bg-white p-5">
-                <h2 class="text-lg font-bold text-gray-900">Prepara tu página para tus clientes</h2>
-                <p class="mt-2 text-sm text-gray-600">Personaliza el logo y los colores. Revisa también los horarios de atención en la pestaña Horarios.</p>
-                <p v-if="!canAccessSeo" class="mt-2 text-sm text-gray-600">La edición de descripción, dirección y WhatsApp está disponible en los planes que incluyen SEO y WhatsApp.</p>
-            </div>
-            <BrandingTab v-if="canAccessBranding" :tenant="tenant" :branding-routes="brandingRoutes" />
-            <SeoTab v-if="canAccessSeo" :tenant="tenant" />
-        </div>
-
-        <UsersTab
-            v-if="activeTab === 'users'"
-            :users="users"
-            :branches="branches"
-            :roles="roles"
-            :plan-max-users="planMaxUsers"
-            :current-user-count="currentUserCount"
-        />
-
-        <BranchesTab
-            v-if="activeTab === 'branches'"
-            :branches="branches"
-            :can-create-branch="canCreateBranch"
-            :branch-limit-info="branchLimitInfo"
-        />
-
-        <CommercialTab v-if="activeTab === 'commercial'" :tenant="tenant" />
-
-        <SeoTab v-if="activeTab === 'seo' && canAccessSeo" :tenant="tenant" />
-
-        <SchedulingTab v-if="activeTab === 'scheduling'" :tenant="tenant" />
-
-        <BrandingTab
-            v-if="activeTab === 'branding' && canAccessBranding"
-            :tenant="tenant"
-            :branding-routes="brandingRoutes"
-        />
-    </SettingsLayout>
 </template>

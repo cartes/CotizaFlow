@@ -20,11 +20,11 @@ class ServiceController extends Controller
 
     public function index(Request $request): Response
     {
-        $this->ensureFeatureEnabled();
 
         $search = $request->input('search');
 
         $services = Service::query()
+            ->where('is_active', true)
             ->when($search, function ($query, string $search): void {
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('code', 'like', "%{$search}%");
@@ -45,7 +45,6 @@ class ServiceController extends Controller
 
     public function store(UpsertServiceRequest $request): RedirectResponse
     {
-        $this->ensureFeatureEnabled();
 
         Service::create($request->validated());
 
@@ -54,7 +53,6 @@ class ServiceController extends Controller
 
     public function update(UpsertServiceRequest $request, Service $service): RedirectResponse
     {
-        $this->ensureFeatureEnabled();
 
         $service->update($request->validated());
 
@@ -65,7 +63,6 @@ class ServiceController extends Controller
 
     public function destroy(Service $service): RedirectResponse
     {
-        $this->ensureFeatureEnabled();
 
         $service->delete();
 

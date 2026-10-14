@@ -1,182 +1,137 @@
 <script setup>
-import { Head, useForm } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
-import WorkOrderQuote from '@/Components/WorkOrderQuote.vue';
-
+import { Head, useForm, usePage } from '@inertiajs/vue3';
+import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 const props = defineProps({
     quote: Object,
-    taxName: {
-        type: String,
-        default: 'IVA',
-    },
-    quoteStatuses: Array,
-    commercialQuotesEnabled: Boolean,
-    uf_value: {
-        type: Number,
-        default: null,
-    },
+    company: Object,
+    clientName: String,
+    items: Array,
+    taxName: String,
 });
-
-const decisionForm = useForm({
-    decision: '',
-    notes: '',
-});
-
-const quoteStatusConfig = {
-    draft: { label: 'En Preparación', classes: 'bg-slate-100 text-slate-600 border-slate-200' },
-    pending_customer: { label: 'Pendiente de Tu Respuesta', classes: 'bg-amber-50 text-amber-600 border-amber-200' },
-    accepted: { label: 'Aceptada', classes: 'bg-emerald-50 text-emerald-600 border-emerald-200' },
-    rejected: { label: 'Rechazada', classes: 'bg-rose-50 text-rose-600 border-rose-200' },
+const page = usePage();
+const form = useForm({ decision: 'accepted', notes: '' });
+const respond = (decision) => {
+    form.decision = decision;
+    form.post(route('quotes.public.respond', { uuid: props.quote.uuid }));
 };
-
-const quoteStatus = computed(() => quoteStatusConfig[props.quote?.status] ?? quoteStatusConfig.draft);
-
-const formatDate = (dateString) => {
-    if (!dateString) return '';
-
-    return new Date(dateString).toLocaleDateString('es-CL', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-    });
+const labels = {
+    pending_customer: 'Pendiente de respuesta',
+    accepted: 'Aceptada',
+    rejected: 'Rechazada',
 };
-
-const showNotes = ref(false);
-
-const totalLabel = computed(() => new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    maximumFractionDigits: 0,
-}).format(Number(props.quote?.total_amount ?? 0)));
-
-const submitDecision = (decision) => {
-    decisionForm.decision = decision;
-    decisionForm.post(route('quotes.public.respond', { uuid: props.quote.uuid }), {
-        preserveScroll: true,
-    });
-};
-
-const whatsappText = encodeURIComponent(`Hola, quisiera consultar sobre la cotización #${props.quote.id} de mi vehículo ${props.quote.vehicle?.plate}.`);
-const wsLink = `https://wa.me/?text=${whatsappText}`;
+const money = (value) =>
+    new Intl.NumberFormat('es-CL', {
+        style: 'currency',
+        currency: 'CLP',
+    }).format(Number(value));
 </script>
-
 <template>
-    <Head :title="`Cotización | ${quote.vehicle?.plate ?? ''}`" />
-
-    <div class="min-h-screen bg-gray-50 pb-10 font-sans">
-        <header class="sticky top-0 z-50 w-full border-b border-gray-100 bg-white shadow-sm">
-            <div class="mx-auto flex max-w-md items-center justify-between px-6 py-4">
-                <div class="flex items-center gap-2">
-                    <div class="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FF7A00] rotate-3">
-                        <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-lg font-black leading-none text-gray-900">Mi Taller</h1>
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Cotización en línea</p>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <main class="mx-auto mt-8 flex w-full max-w-md flex-col gap-8 px-6">
-            <div class="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-                <div class="mb-4 flex items-start justify-between border-b border-gray-50 pb-4">
-                    <div>
-                        <p class="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">Cotización</p>
-                        <p class="text-2xl font-black text-gray-900">#{{ quote.id }}</p>
-                    </div>
-                    <div class="rounded-xl border border-gray-200 bg-gray-50 px-3 py-1.5 text-center shadow-inner">
-                        <p class="text-[8px] font-bold uppercase tracking-widest text-gray-400">Patente</p>
-                        <p class="mt-0.5 text-lg font-black leading-none tracking-widest text-[#FF7A00]">{{ quote.vehicle?.plate }}</p>
-                    </div>
-                </div>
-
+    <div class="min-h-screen bg-slate-50 px-5 py-12">
+        <Head :title="`Cotización #${quote.id}`" />
+        <main
+            class="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white p-6 sm:p-10"
+        >
+            <header class="flex items-center gap-4">
+                <img
+                    v-if="company.logo_url"
+                    :src="company.logo_url"
+                    :alt="company.name"
+                    class="h-14 w-14 object-contain"
+                /><ApplicationLogo v-else class="h-12 w-12" />
                 <div>
-                    <p class="text-sm font-bold uppercase text-gray-800">{{ quote.vehicle?.brand }} {{ quote.vehicle?.model }}</p>
-                    <p class="mt-1 text-xs font-medium text-gray-500">Cotización generada el {{ formatDate(quote.created_at) }}</p>
+                    <p class="font-semibold">{{ company.name }}</p>
+                    <p class="text-sm text-slate-500">
+                        Cotización preparada con CotizaFlow
+                    </p>
                 </div>
-            </div>
-
-            <div v-if="commercialQuotesEnabled" class="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-                <div class="mb-5 flex items-center justify-between gap-3">
-                    <h3 class="text-xs font-black uppercase tracking-widest text-gray-900">Estado de la Cotización</h3>
-                    <span :class="['rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-widest', quoteStatus.classes]">
-                        {{ quoteStatus.label }}
-                    </span>
-                </div>
-
-                <WorkOrderQuote :workOrder="quote" :uf-value="uf_value" :tax-name="taxName" />
-
-                <div v-if="quote.status === 'pending_customer'" class="mt-6 space-y-4 rounded-3xl border border-orange-100 bg-orange-50/60 p-5">
-                    <div>
-                        <p class="text-sm font-black text-gray-900">Responder cotización</p>
-                        <p class="mt-1 text-xs font-medium text-gray-500">Con un toque autorizas el trabajo. Si algo no te cuadra, puedes rechazarla para que el taller la ajuste.</p>
-                    </div>
-
-                    <button
-                        type="button"
-                        class="w-full rounded-2xl bg-emerald-500 px-4 py-4 text-base font-black text-white shadow-lg shadow-emerald-500/30 transition-all hover:bg-emerald-600 active:scale-95 disabled:opacity-50"
-                        :disabled="decisionForm.processing"
-                        @click="submitDecision('accepted')"
-                    >
-                        Aprobar presupuesto · {{ totalLabel }}
-                    </button>
-
-                    <div class="flex items-center justify-between gap-3 text-xs font-bold">
-                        <button type="button" class="text-gray-500 underline" @click="showNotes = !showNotes">
-                            {{ showNotes ? 'Ocultar comentario' : 'Agregar comentario' }}
-                        </button>
-                        <button
-                            type="button"
-                            class="text-rose-500 underline disabled:opacity-50"
-                            :disabled="decisionForm.processing"
-                            @click="submitDecision('rejected')"
+            </header>
+            <h1 class="mt-8 text-3xl font-bold">Cotización #{{ quote.id }}</h1>
+            <p class="mt-3 text-slate-600">Preparada para {{ clientName }}</p>
+            <p class="mt-2 font-semibold text-orange-600">
+                {{ labels[quote.status] }}
+            </p>
+            <div class="my-8 overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr>
+                            <th class="py-3">Descripción</th>
+                            <th class="p-3">Cantidad</th>
+                            <th class="p-3">Descuento</th>
+                            <th class="p-3">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            v-for="item in items"
+                            :key="item.id"
+                            class="border-t border-slate-100"
                         >
-                            Rechazar
-                        </button>
-                    </div>
-
-                    <textarea
-                        v-if="showNotes"
-                        v-model="decisionForm.notes"
-                        rows="3"
-                        class="w-full rounded-2xl border border-orange-100 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-orange-300"
-                        placeholder="Comentario opcional para el taller"
-                    />
-                    <p v-if="decisionForm.errors.notes" class="text-[10px] font-semibold text-rose-500">{{ decisionForm.errors.notes }}</p>
-                </div>
-
-                <div v-else-if="quote.customer_response_notes" class="mt-6 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-4">
-                    <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Tu comentario</p>
-                    <p class="mt-2 text-sm font-medium text-gray-700">{{ quote.customer_response_notes }}</p>
-                </div>
-
-                <div v-if="quote.status === 'accepted'" class="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-4">
-                    <p class="text-[10px] font-black uppercase tracking-widest text-emerald-500">Cotización aceptada</p>
-                    <p class="mt-2 text-sm font-medium text-emerald-900">El taller ya fue notificado y se generó tu Orden de Trabajo. Pronto se pondrán en contacto contigo para coordinar el ingreso de tu vehículo.</p>
-                </div>
+                            <td class="py-4">{{ item.description }}</td>
+                            <td class="p-3">{{ item.quantity }}</td>
+                            <td class="p-3">{{ item.discount_percent }}%</td>
+                            <td class="p-3">{{ money(item.total_price) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-
-            <div v-else class="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-                <h3 class="text-xs font-black uppercase tracking-widest text-gray-900">Cotización en línea</h3>
-                <p class="mt-3 text-sm font-medium text-gray-500">
-                    Este taller no tiene habilitada la aprobación comercial en línea para tu plan actual.
-                    Si necesitas una propuesta formal, contáctate directamente con recepción.
+            <div class="flex flex-col gap-3 border-t pt-5">
+                <p class="flex justify-between">
+                    <span>Subtotal</span
+                    ><span>{{ money(quote.subtotal_amount) }}</span>
+                </p>
+                <p class="flex justify-between">
+                    <span
+                        >{{ taxName }} ({{
+                            quote.apply_tax ? quote.tax_rate : 0
+                        }}%)</span
+                    ><span>{{ money(quote.tax_amount) }}</span>
+                </p>
+                <p class="flex justify-between text-xl font-bold">
+                    <span>Total</span
+                    ><span>{{ money(quote.total_amount) }}</span>
                 </p>
             </div>
-
-            <a
-                :href="wsLink"
-                target="_blank"
-                class="flex w-full items-center justify-center gap-3 rounded-full bg-[#25D366] px-6 py-4 text-sm font-black uppercase tracking-wider text-white shadow-[0_10px_20px_rgba(37,211,102,0.3)] transition-all hover:bg-[#128C7E] active:scale-95"
+            <p class="mt-6 whitespace-pre-wrap text-slate-600">
+                {{ quote.notes }}
+            </p>
+            <section
+                v-if="quote.status === 'pending_customer'"
+                class="mt-8 border-t pt-6"
             >
-                <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-                </svg>
-                Contactar al Taller
-            </a>
+                <label class="flex flex-col gap-2"
+                    >Comentario (opcional)<textarea
+                        v-model="form.notes"
+                        maxlength="1000"
+                        rows="3"
+                        class="rounded-lg border-slate-300"
+                    />
+                </label>
+                <div class="mt-4 flex flex-wrap gap-3">
+                    <button
+                        :disabled="form.processing"
+                        @click="respond('accepted')"
+                        class="rounded-xl bg-orange-500 px-5 py-3 font-semibold text-white"
+                    >
+                        Aceptar cotización</button
+                    ><button
+                        :disabled="form.processing"
+                        @click="respond('rejected')"
+                        class="rounded-xl border border-slate-300 px-5 py-3"
+                    >
+                        Rechazar
+                    </button>
+                </div>
+                <p
+                    v-for="(error, key) in form.errors"
+                    :key="key"
+                    class="mt-3 text-red-600"
+                >
+                    {{ error }}
+                </p>
+            </section>
+            <p v-if="page.props.flash?.success" class="mt-5 text-green-700">
+                {{ page.props.flash.success }}
+            </p>
         </main>
     </div>
 </template>

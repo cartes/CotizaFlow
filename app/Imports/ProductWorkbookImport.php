@@ -6,7 +6,6 @@ namespace App\Imports;
 
 use App\Models\Product;
 use App\Models\ProductCategory;
-use App\Services\StockService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -40,10 +39,6 @@ class ProductWorkbookImport extends StringValueBinder implements ToCollection, W
         'created_categories' => 0,
         'errors' => [],
     ];
-
-    public function __construct(
-        private readonly ?StockService $stockService = null,
-    ) {}
 
     public function collection(Collection $rows): void
     {
@@ -106,7 +101,6 @@ class ProductWorkbookImport extends StringValueBinder implements ToCollection, W
             $sku = strtoupper($row['sku']);
             $product = Product::withTrashed()->where('sku', $sku)->first() ?? new Product;
             $isNewProduct = ! $product->exists;
-            $oldStock = (int) $product->physical_stock;
 
             if ($product->trashed()) {
                 $product->restore();
@@ -116,26 +110,17 @@ class ProductWorkbookImport extends StringValueBinder implements ToCollection, W
                 'name' => $row['name'],
                 'sku' => $sku,
                 'category_id' => $this->resolveCategoryId($row['category']),
-                'type' => $this->normalizeType($row['type']),
+                'type' => 'insumo',
                 'description' => $row['description'],
                 'cost_price' => $this->parseDecimal($row['cost_price']),
                 'selling_price' => $this->parseDecimal($row['selling_price']),
                 'tax_included' => $this->parseBoolean($row['tax_included']),
-                'physical_stock' => $this->parseInteger($row['physical_stock']),
-                'min_stock' => $this->parseInteger($row['min_stock']),
             ]);
             $product->save();
 
             $this->summary[$isNewProduct ? 'created_products' : 'updated_products']++;
 
-            $this->stockService()
-                ->recordManualAdjustment($product, $oldStock, (int) $product->physical_stock);
         });
-    }
-
-    private function stockService(): StockService
-    {
-        return $this->stockService ?? app(StockService::class);
     }
 
     private function resolveCategoryId(?string $categoryName): ?int
@@ -227,18 +212,6 @@ class ProductWorkbookImport extends StringValueBinder implements ToCollection, W
         }
 
         return true;
-    }
-
-    private function normalizeType(?string $value): string
-    {
-        $normalized = strtolower((string) str_replace(['-', ' '], '_', trim((string) $value)));
-
-        return match ($normalized) {
-            '', 'repuesto_nacional', 'nacional' => 'repuesto_nacional',
-            'repuesto_internacional', 'internacional' => 'repuesto_internacional',
-            'insumo' => 'insumo',
-            default => throw new InvalidArgumentException('El tipo debe ser repuesto_nacional, repuesto_internacional o insumo.'),
-        };
     }
 
     private function parseDecimal(?string $value): float

@@ -5,7 +5,7 @@ import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 
-const appName = 'TallerFlow';
+const appName = 'CotizaFlow';
 
 createServer((page) =>
     createInertiaApp({
@@ -15,7 +15,24 @@ createServer((page) =>
         resolve: (name) =>
             resolvePageComponent(
                 `./Pages/${name}.vue`,
-                import.meta.glob('./Pages/**/*.vue', { eager: true }),
+                import.meta.glob(
+                    [
+                        './Pages/Welcome.vue',
+                        './Pages/Pricing.vue',
+                        './Pages/Servicios.vue',
+                        './Pages/Dashboard.vue',
+                        './Pages/Quotes/*.vue',
+                        './Pages/Clients/*.vue',
+                        './Pages/Inventory/Index.vue',
+                        './Pages/Services/Index.vue',
+                        './Pages/Settings/Index.vue',
+                        './Pages/Trial/*.vue',
+                        './Pages/Profile/**/*.vue',
+                        './Pages/Auth/*.vue',
+                        './Pages/Admin/Dashboard.vue',
+                    ],
+                    { eager: true },
+                ),
             ),
         setup({ App, props, plugin }) {
             return createSSRApp({ render: () => h(App, props) })

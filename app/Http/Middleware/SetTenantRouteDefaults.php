@@ -29,7 +29,7 @@ class SetTenantRouteDefaults
         if ($tenant && $tenant->slug) {
             $user = $request->user();
             if ($user && ! $user->is_super_admin && $user->tenant_id !== $tenant->id) {
-                abort(403, 'No tienes acceso a este taller.');
+                abort(403, 'No tienes acceso a esta empresa.');
             }
 
             app(PermissionRegistrar::class)->setPermissionsTeamId($tenant->id);

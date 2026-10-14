@@ -25,7 +25,7 @@ class TrialRequestController extends Controller
 
         return Inertia::render('Trial/Create', [
             'countries' => $countries,
-            'seo' => $this->resolveMarketingSeo('trial'),
+            'seo' => ['title' => 'Solicitar acceso a CotizaFlow', 'description' => 'Cotizaciones y seguimiento comercial para pymes.'],
         ]);
     }
 
