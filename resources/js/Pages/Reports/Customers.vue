@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import PrintableReportShell from '@/Components/PrintableReportShell.vue';
 import ReportsNavigation from '@/Components/ReportsNavigation.vue';
 import ReportExportActions from '@/Components/ReportExportActions.vue';
@@ -21,7 +21,7 @@ defineProps({
 <template>
     <Head title="Reporte de Clientes" />
 
-    <TallerLayout>
+    <CompanyLayout>
         <PrintableReportShell>
             <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
@@ -166,5 +166,5 @@ defineProps({
                 </div>
             </div>
         </PrintableReportShell>
-    </TallerLayout>
+    </CompanyLayout>
 </template>

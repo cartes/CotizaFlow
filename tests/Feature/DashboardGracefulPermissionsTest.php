@@ -22,7 +22,7 @@ class DashboardGracefulPermissionsTest extends TestCase
             'tenant_id' => $tenant->id,
         ]);
 
-        $response = $this->actingAs($user)->get(route('taller.dashboard', [
+        $response = $this->actingAs($user)->get(route('company.dashboard', [
             'tenantBySlug' => $tenant->slug,
         ]));
 

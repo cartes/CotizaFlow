@@ -5,7 +5,7 @@
             $tenant = \App\Models\Tenant::current();
         @endphp
         @if ($tenant)
-            <x-mail::header :url="Route::has('taller.landing') ? route('taller.landing', ['tenantBySlug' => $tenant->slug]) : (Route::has('taller.dashboard') ? route('taller.dashboard', ['tenantBySlug' => $tenant->slug]) : config('app.url'))">
+            <x-mail::header :url="Route::has('taller.landing') ? route('taller.landing', ['tenantBySlug' => $tenant->slug]) : (Route::has('company.dashboard') ? route('company.dashboard', ['tenantBySlug' => $tenant->slug]) : config('app.url'))">
                 @if ($tenant->logoUrl())
                     <img src="{{ $tenant->logoUrl() }}" class="logo" alt="{{ $tenant->name }}"
                         style="max-height: 60px; width: auto; object-fit: contain;">

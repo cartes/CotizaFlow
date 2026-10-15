@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3';
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import ViewTabs from '@/Components/ViewTabs.vue';
 const props = defineProps({
     quote: Object,
@@ -73,7 +73,7 @@ const whatsapp = computed(() => {
 const activeSection = ref('items');
 </script>
 <template>
-    <TallerLayout
+    <CompanyLayout
         ><Head :title="`Cotización #${quote.id}`" />
         <div class="flex flex-wrap justify-between gap-4">
             <div>
@@ -391,6 +391,6 @@ const activeSection = ref('items');
                     · {{ event.description }}
                 </li>
             </ul>
-        </section></TallerLayout
+        </section></CompanyLayout
     >
 </template>

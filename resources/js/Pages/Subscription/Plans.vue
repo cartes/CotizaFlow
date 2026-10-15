@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import PlanCard from '@/Components/PlanCard.vue';
 
 const props = defineProps({
@@ -41,7 +41,7 @@ const isExpired = computed(() => {
 <template>
     <Head title="Planes de Suscripción" />
 
-    <TallerLayout>
+    <CompanyLayout>
         <!-- Flash messages -->
         <div v-if="flash.success" class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl px-5 py-4 text-sm font-medium">
             {{ flash.success }}
@@ -134,5 +134,5 @@ const isExpired = computed(() => {
         <p class="text-center text-xs text-slate-400">
             Los pagos se procesan de forma segura a través de Mercado Pago. IVA incluido en las comisiones.
         </p>
-    </TallerLayout>
+    </CompanyLayout>
 </template>

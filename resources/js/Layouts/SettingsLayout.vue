@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useTenantRouting } from '@/composables/useTenantRouting';
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import SettingsSectionTabs from '@/Components/SettingsSectionTabs.vue';
 
 const props = defineProps({
@@ -63,7 +63,7 @@ const computedBranchesCount = computed(() =>
 </script>
 
 <template>
-    <TallerLayout>
+    <CompanyLayout>
         <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <!-- Header -->
             <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 px-1">
@@ -92,5 +92,5 @@ const computedBranchesCount = computed(() =>
             <!-- Page Content -->
             <slot />
         </div>
-    </TallerLayout>
+    </CompanyLayout>
 </template>

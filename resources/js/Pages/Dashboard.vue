@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import ViewTabs from '@/Components/ViewTabs.vue';
 const props = defineProps({ stats: Object, recentQuotes: Array });
 const page = usePage();
@@ -23,7 +23,7 @@ const labels = {
 const activeSection = ref('resumen');
 </script>
 <template>
-    <TallerLayout
+    <CompanyLayout
         ><Head title="Inicio" />
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -109,6 +109,6 @@ const activeSection = ref('resumen');
             <p v-else class="py-10 text-slate-500">
                 Aún no hay cotizaciones. Agrega un cliente y prepara la primera.
             </p>
-        </section></TallerLayout
+        </section></CompanyLayout
     >
 </template>

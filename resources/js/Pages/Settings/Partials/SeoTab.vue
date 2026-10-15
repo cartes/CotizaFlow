@@ -18,7 +18,7 @@ const seoForm = useForm({
 });
 
 const submitSeoSettings = () => {
-    seoForm.patch(route('taller.settings.seo.update', tenantRouteParams.value), {
+    seoForm.patch(route('company.settings.seo.update', tenantRouteParams.value), {
         preserveScroll: true,
     });
 };
@@ -40,7 +40,7 @@ const generateAiDescription = async () => {
 
     try {
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
-        const res = await fetch(route('taller.settings.seo.generate', tenantRouteParams.value), {
+        const res = await fetch(route('company.settings.seo.generate', tenantRouteParams.value), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

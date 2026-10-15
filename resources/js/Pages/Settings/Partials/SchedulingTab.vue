@@ -95,7 +95,7 @@ const removeBlockedSlot = (id) => {
 };
 
 const submitScheduling = () => {
-    schedulingForm.patch(route('taller.settings.scheduling.update', tenantRouteParams.value), {
+    schedulingForm.patch(route('company.settings.scheduling.update', tenantRouteParams.value), {
         preserveScroll: true,
     });
 };
@@ -124,7 +124,7 @@ const loadHolidays = async () => {
     loadedHolidays.value = [];
 
     try {
-        const url = route('taller.settings.scheduling.feriados', {
+        const url = route('company.settings.scheduling.feriados', {
             ...tenantRouteParams.value,
             year: holidayYear.value,
         });

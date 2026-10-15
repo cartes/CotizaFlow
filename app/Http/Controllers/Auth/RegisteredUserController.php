@@ -65,6 +65,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('taller.dashboard', ['tenantBySlug' => Tenant::current()->slug]);
+        return redirect()->route('company.dashboard', ['tenantBySlug' => Tenant::current()->slug]);
     }
 }

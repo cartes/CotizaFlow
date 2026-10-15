@@ -13,12 +13,11 @@ import { Head } from '@inertiajs/vue3';
 
 const props = defineProps({
     seo: { type: Object, default: () => ({}) },
-    fallbackTitle: { type: String, default: 'TallerFlow' },
+    fallbackTitle: { type: String, default: 'CotizaFlow' },
 });
 
-const SITE_NAME = 'TallerFlow';
+const SITE_NAME = 'CotizaFlow';
 const LOCALE = 'es_CL';
-const TWITTER_SITE = '@tallerflow';
 const DEFAULT_ROBOTS = 'index, follow, max-image-preview:large, max-snippet:-1';
 
 const hasSeo = computed(() => props.seo && Object.keys(props.seo).length > 0);
@@ -64,7 +63,6 @@ const modifiedTime = computed(() => props.seo?.modified_time || null);
             </template>
 
             <meta name="twitter:card" :content="twitterCard">
-            <meta name="twitter:site" :content="TWITTER_SITE">
             <meta name="twitter:title" :content="title">
             <meta v-if="description" name="twitter:description" :content="description">
             <template v-if="image">

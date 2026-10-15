@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import ViewTabs from '@/Components/ViewTabs.vue';
 const props = defineProps({ client: Object, quotes: Array });
 const params = {
@@ -24,7 +24,7 @@ const labels = {
 const activeSection = ref('datos');
 </script>
 <template>
-    <TallerLayout
+    <CompanyLayout
         ><Head :title="client.name" /><Link
             :href="
                 route('clients.index', { tenantBySlug: params.tenantBySlug })
@@ -101,6 +101,6 @@ const activeSection = ref('datos');
             <p v-if="!quotes.length" class="mt-4 text-slate-500">
                 Este cliente aún no tiene cotizaciones.
             </p>
-        </section></TallerLayout
+        </section></CompanyLayout
     >
 </template>

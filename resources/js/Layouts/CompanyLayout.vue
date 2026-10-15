@@ -16,7 +16,7 @@ const params = computed(() =>
 const items = computed(() =>
     tenant.value
         ? [
-              { label: 'Inicio', name: 'taller.dashboard', show: true },
+              { label: 'Inicio', name: 'company.dashboard', show: true },
               {
                   label: 'Cotizaciones',
                   name: 'quotes.index',
@@ -44,7 +44,7 @@ const items = computed(() =>
               },
               {
                   label: 'Configuración',
-                  name: 'taller.settings',
+                  name: 'company.settings',
                   show: can('users.manage'),
               },
           ].filter((item) => item.show)
@@ -74,7 +74,7 @@ watch(
                 <Link
                     :href="
                         tenant
-                            ? route('taller.dashboard', params)
+                            ? route('company.dashboard', params)
                             : route('home')
                     "
                     class="cf-brand"

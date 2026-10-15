@@ -35,7 +35,7 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('taller.dashboard', ['tenantBySlug' => Tenant::current()->slug]));
+        $response->assertRedirect(route('company.dashboard', ['tenantBySlug' => Tenant::current()->slug]));
     }
 
     public function test_registration_is_blocked_when_tenant_user_limit_is_reached(): void

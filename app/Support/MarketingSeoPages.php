@@ -10,11 +10,11 @@ namespace App\Support;
  */
 final class MarketingSeoPages
 {
-    public const SITE_NAME = 'TallerFlow';
+    public const SITE_NAME = 'CotizaFlow';
 
     public const LOCALE = 'es_CL';
 
-    public const TWITTER_SITE = '@tallerflow';
+    public const TWITTER_SITE = null;
 
     public const DEFAULT_ROBOTS = 'index, follow, max-image-preview:large, max-snippet:-1';
 
@@ -38,29 +38,29 @@ final class MarketingSeoPages
             'label' => 'Página de Inicio',
             'route' => 'home',
             'og_type' => 'website',
-            'default_title' => 'TallerFlow | Gestión digital',
-            'default_description' => 'TallerFlow digitaliza la gestión de tu taller mecánico en Chile. Kanban en vivo, recepción con IA, inventario inteligente y WhatsApp automatizado. Prueba gratis 14 días.',
+            'default_title' => 'CotizaFlow | Cotizaciones y seguimiento comercial',
+            'default_description' => 'CotizaFlow ayuda a microempresas y pymes a crear cotizaciones profesionales y hacer seguimiento comercial.',
         ],
         'services' => [
             'label' => 'Características y Módulos',
             'route' => 'servicios',
             'og_type' => 'website',
-            'default_title' => 'Características y Módulos · TallerFlow — Sistema para Talleres',
-            'default_description' => 'Conoce todas las características de TallerFlow. Recepción inteligente de patentes con IA, tablero Kanban, agenda integrada, inventario, cotizaciones por WhatsApp y reportes.',
+            'default_title' => 'Funciones de CotizaFlow | Productos, servicios y cotizaciones',
+            'default_description' => 'Organiza clientes, productos, servicios, descuentos e impuestos; comparte cotizaciones y revisa su estado.',
         ],
         'pricing' => [
             'label' => 'Página de Precios',
             'route' => 'pricing',
             'og_type' => 'website',
-            'default_title' => 'Planes y Precios · TallerFlow — Software para Talleres',
-            'default_description' => 'Elige el plan TallerFlow ideal para tu taller mecánico. Desde $19.990/mes con 14 días de prueba gratis. Sin tarjeta de crédito requerida.',
+            'default_title' => 'Planes y precios de CotizaFlow',
+            'default_description' => 'Elige el plan que se ajuste a la gestión de clientes, productos, servicios y cotizaciones de tu empresa.',
         ],
         'trial' => [
             'label' => 'Solicitar Prueba Gratuita',
             'route' => 'trial.create',
             'og_type' => 'website',
-            'default_title' => 'Prueba Gratis 14 días · TallerFlow — Software para Talleres',
-            'default_description' => 'Solicita tu acceso gratuito de 14 días a TallerFlow. Sin tarjeta de crédito. Sin compromisos. Activa tu taller digital hoy.',
+            'default_title' => 'Solicita acceso a CotizaFlow',
+            'default_description' => 'Prueba una herramienta para crear y dar seguimiento a cotizaciones comerciales en tu empresa.',
         ],
         'blog' => [
             'label' => 'Blog',

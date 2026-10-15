@@ -47,6 +47,6 @@ class DashboardRedirectTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('dashboard', absolute: false));
 
-        $response->assertRedirect(route('taller.dashboard', ['tenantBySlug' => $tenant->slug]));
+        $response->assertRedirect(route('company.dashboard', ['tenantBySlug' => $tenant->slug]));
     }
 }

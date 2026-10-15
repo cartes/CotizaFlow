@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 const props = defineProps({
     quotes: Object,
     filters: Object,
@@ -33,7 +33,7 @@ const days = (date) =>
         : 0;
 </script>
 <template>
-    <TallerLayout
+    <CompanyLayout
         ><Head :title="followUp ? 'Seguimiento' : 'Cotizaciones'" />
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -140,6 +140,6 @@ const days = (date) =>
             ><Link v-if="quotes.next_page_url" :href="quotes.next_page_url"
                 >Siguiente →</Link
             >
-        </div></TallerLayout
+        </div></CompanyLayout
     >
 </template>

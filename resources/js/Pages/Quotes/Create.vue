@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import ViewTabs from '@/Components/ViewTabs.vue';
 defineProps({ clients: Array });
 const params = { tenantBySlug: usePage().props.tenant?.slug };
@@ -21,7 +21,7 @@ const submit = () => {
 const form = useForm({ client_id: '', notes: '' });
 </script>
 <template>
-    <TallerLayout
+    <CompanyLayout
         ><Head title="Nueva cotización" />
         <h1 class="text-3xl font-bold">Nueva cotización</h1>
         <ViewTabs
@@ -79,6 +79,6 @@ const form = useForm({ client_id: '', notes: '' });
             >
                 Crear cotización
             </button>
-        </form></TallerLayout
+        </form></CompanyLayout
     >
 </template>

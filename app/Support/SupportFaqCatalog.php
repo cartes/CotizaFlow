@@ -8,7 +8,7 @@ class SupportFaqCatalog
 {
     /**
      * FAQ por sección/vista del taller. Las keys coinciden con las de
-     * TallerLayout::SECTION_TOUR_ROUTES (resources/js/Layouts/TallerLayout.vue)
+     * CompanyLayout::SECTION_TOUR_ROUTES (resources/js/Layouts/CompanyLayout.vue)
      * para mantener un único mapeo vista → sección en todo el sistema.
      *
      * @return array<string, array<int, array{id: string, question: string, answer: string, selector: string|null}>>

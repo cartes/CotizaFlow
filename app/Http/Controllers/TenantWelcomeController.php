@@ -37,7 +37,7 @@ class TenantWelcomeController extends Controller
             return redirect()->route('taller.welcome.show', ['tenantBySlug' => $tenant->slug, 'step' => (int) $data['step'] + 1]);
         }
 
-        return redirect()->route('taller.dashboard', ['tenantBySlug' => $tenant->slug])
+        return redirect()->route('company.dashboard', ['tenantBySlug' => $tenant->slug])
             ->with('success', $data['action'] === 'finish' ? 'Tu página está preparada. Ya puedes compartirla con tus clientes.' : 'Puedes retomar la bienvenida desde Inicio.');
     }
 }

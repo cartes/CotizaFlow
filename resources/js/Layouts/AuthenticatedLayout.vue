@@ -1,6 +1,6 @@
 <script setup>
-import TallerLayout from './TallerLayout.vue';
+import CompanyLayout from './CompanyLayout.vue';
 </script>
 <template>
-    <TallerLayout><slot name="header" /><slot /></TallerLayout>
+    <CompanyLayout><slot name="header" /><slot /></CompanyLayout>
 </template>

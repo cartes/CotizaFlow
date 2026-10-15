@@ -10,14 +10,14 @@ const props = defineProps({
     invoice: Object,
 });
 
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 const canSendManualWhatsApp = computed(() => Boolean(props.invoice.manual_whatsapp_url));
 </script>
 
 <template>
     <Head :title="invoice.invoice_number || `Factura #${invoice.id}`" />
 
-    <TallerLayout>
+    <CompanyLayout>
         <div class="space-y-8">
             <div class="flex items-center justify-between gap-4">
                 <div>
@@ -106,5 +106,5 @@ const canSendManualWhatsApp = computed(() => Boolean(props.invoice.manual_whatsa
                 </div>
             </div>
         </div>
-    </TallerLayout>
+    </CompanyLayout>
 </template>

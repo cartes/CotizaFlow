@@ -14,12 +14,12 @@ class TenantSetupChecklistService
     public function forTenant(Tenant $tenant): array
     {
         $settingsParams = ['tenantBySlug' => $tenant->slug];
-        $websiteUrl = route('taller.settings', [...$settingsParams, 'tab' => 'website']);
+        $websiteUrl = route('company.settings', [...$settingsParams, 'tab' => 'website']);
         $completedSteps = $tenant->setup_checklist ?? [];
         $steps = [
-            ['id' => 'business_details', 'title' => 'Completar los datos del taller', 'description' => 'Revisa la dirección, teléfono y correo de tu sucursal principal.', 'url' => route('taller.settings', [...$settingsParams, 'tab' => 'branches']), 'action' => 'Revisar datos'],
+            ['id' => 'business_details', 'title' => 'Completar los datos del taller', 'description' => 'Revisa la dirección, teléfono y correo de tu sucursal principal.', 'url' => route('company.settings', [...$settingsParams, 'tab' => 'branches']), 'action' => 'Revisar datos'],
             ['id' => 'branding_contact', 'title' => 'Revisar logo y contacto', 'description' => $tenant->hasFeature('seo_manager') ? 'Personaliza tu logo y comprueba los datos de contacto de tu página.' : 'Revisa tu logo. Los datos de contacto se administran en Sucursales.', 'url' => $websiteUrl, 'action' => 'Personalizar página'],
-            ['id' => 'scheduling', 'title' => 'Configurar horarios de atención', 'description' => 'Revisa tus días de atención, horarios y bloqueos.', 'url' => route('taller.settings', [...$settingsParams, 'tab' => 'scheduling']), 'action' => 'Revisar horarios'],
+            ['id' => 'scheduling', 'title' => 'Configurar horarios de atención', 'description' => 'Revisa tus días de atención, horarios y bloqueos.', 'url' => route('company.settings', [...$settingsParams, 'tab' => 'scheduling']), 'action' => 'Revisar horarios'],
             ['id' => 'public_page', 'title' => 'Revisar la página pública', 'description' => 'Abre tu página y comprueba cómo la verán tus clientes.', 'url' => route('taller.landing', $settingsParams), 'action' => 'Ver mi página'],
             ['id' => 'share_link', 'title' => 'Compartir el enlace', 'description' => 'Copia el enlace o compártelo por WhatsApp desde Mi página web. Marca este paso cuando lo hayas compartido.', 'url' => $websiteUrl, 'action' => 'Compartir mi página'],
         ];
@@ -37,7 +37,7 @@ class TenantSetupChecklistService
             'total' => count($steps),
             'is_complete' => $completedCount === count($steps),
             'overview_url' => $websiteUrl,
-            'update_url' => route('taller.settings.setup-checklist.update', $settingsParams),
+            'update_url' => route('company.settings.setup-checklist.update', $settingsParams),
         ];
     }
 

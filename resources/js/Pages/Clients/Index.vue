@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3';
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import ViewTabs from '@/Components/ViewTabs.vue';
 const props = defineProps({ clients: Object, filters: Object });
 const params = { tenantBySlug: usePage().props.tenant?.slug };
@@ -22,7 +22,7 @@ const submit = () =>
     });
 </script>
 <template>
-    <TallerLayout
+    <CompanyLayout
         ><Head title="Clientes" />
         <div class="flex flex-wrap justify-between gap-4">
             <div>
@@ -150,6 +150,6 @@ const submit = () =>
             ><Link v-if="clients.next_page_url" :href="clients.next_page_url"
                 >Siguiente →</Link
             >
-        </div></TallerLayout
+        </div></CompanyLayout
     >
 </template>

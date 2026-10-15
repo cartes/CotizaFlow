@@ -38,16 +38,9 @@ class MarketingSeoTest extends TestCase
         $user = User::factory()->create(['tenant_id' => $tenant->id]);
         $user->assignRole('Admin');
         $this->actingAs($user);
-        foreach (['/talleres', '/orden-de-trabajo-taller-mecanico', '/taller/'.$tenant->slug, '/empresa/'.$tenant->slug.'/receptions/create', '/empresa/'.$tenant->slug.'/work-orders', '/empresa/'.$tenant->slug.'/appointments', '/empresa/'.$tenant->slug.'/invoices', '/empresa/'.$tenant->slug.'/quotes/search-plate'] as $path) {
+        foreach (['/talleres', '/orden-de-trabajo-taller-mecanico', '/taller/'.$tenant->slug, '/taller/'.$tenant->slug.'/dashboard', '/empresa/'.$tenant->slug.'/receptions/create', '/empresa/'.$tenant->slug.'/work-orders', '/empresa/'.$tenant->slug.'/appointments', '/empresa/'.$tenant->slug.'/invoices', '/empresa/'.$tenant->slug.'/quotes/search-plate'] as $path) {
             $this->get($path)->assertNotFound();
         }
-    }
-
-    public function test_old_dashboard_redirects_to_commercial_company_url(): void
-    {
-        $tenant = $this->setUpTenant();
-        $user = User::factory()->create(['tenant_id' => $tenant->id]);
-        $this->actingAs($user)->get('/taller/'.$tenant->slug.'/dashboard')->assertRedirect('/empresa/'.$tenant->slug.'/inicio');
     }
 
     public function test_commercial_pages_load_for_admin(): void
@@ -56,7 +49,7 @@ class MarketingSeoTest extends TestCase
         $user = User::factory()->create(['tenant_id' => $tenant->id]);
         $user->assignRole('Admin');
         $this->actingAs($user);
-        foreach (['taller.dashboard', 'quotes.index', 'quotes.create', 'quotes.follow-up', 'clients.index', 'inventory.index', 'services.index', 'taller.settings'] as $name) {
+        foreach (['company.dashboard', 'quotes.index', 'quotes.create', 'quotes.follow-up', 'clients.index', 'inventory.index', 'services.index', 'company.settings'] as $name) {
             $this->get(route($name))->assertOk();
         }
     }
@@ -100,7 +93,7 @@ class MarketingSeoTest extends TestCase
         $tenant = $this->setUpTenant();
         $user = User::factory()->create(['tenant_id' => $tenant->id]);
         $user->assignRole('Admin');
-        $this->actingAs($user)->patch(route('taller.settings.commercial.update'), ['name' => 'Nueva empresa', 'max_discount_without_approval' => 15])->assertRedirect()->assertSessionHasNoErrors();
+        $this->actingAs($user)->patch(route('company.settings.commercial.update'), ['name' => 'Nueva empresa', 'max_discount_without_approval' => 15])->assertRedirect()->assertSessionHasNoErrors();
         $this->assertSame('Nueva empresa', $tenant->fresh()->name);
     }
 
@@ -119,7 +112,7 @@ class MarketingSeoTest extends TestCase
         $user = User::factory()->create(['tenant_id' => $tenant->id]);
         $client = Client::create(['name' => 'Cliente Privado', 'rut' => '12345678-5']);
         app(ManualQuoteService::class)->createDraft(['client_id' => $client->id]);
-        $this->actingAs($user)->get(route('taller.dashboard'))->assertOk()->assertInertia(fn (Assert $page) => $page->has('recentQuotes', 0)->where('stats.clients', 0)->where('stats.drafts', 0));
+        $this->actingAs($user)->get(route('company.dashboard'))->assertOk()->assertInertia(fn (Assert $page) => $page->has('recentQuotes', 0)->where('stats.clients', 0)->where('stats.drafts', 0));
     }
 
     public function test_role_changes_are_loaded_after_switching_company_context(): void

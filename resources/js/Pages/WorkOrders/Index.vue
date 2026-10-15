@@ -3,7 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import { workOrderColumns } from '@/utils/workOrderColumns';
 import ActionEmptyState from '@/Components/ActionEmptyState.vue';
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import axios from 'axios';
 import WorkOrderQuote from '@/Components/WorkOrderQuote.vue';
 import Dropdown from '@/Components/Dropdown.vue';
@@ -516,7 +516,7 @@ const submitDeleteWorkOrder = () => {
 <template>
     <Head :title="viewMode === 'list' ? 'Listado de Órdenes' : 'Tablero de Órdenes'" />
 
-    <TallerLayout>
+    <CompanyLayout>
 
         <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
             <div>
@@ -1586,7 +1586,7 @@ const submitDeleteWorkOrder = () => {
             @action="stageToast.handler && stageToast.handler()"
             @dismiss="stageToast.message = ''"
         />
-    </TallerLayout>
+    </CompanyLayout>
 </template>
 
 <style scoped>

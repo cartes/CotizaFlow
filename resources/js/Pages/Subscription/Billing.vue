@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import { STATUS_CONFIG, PAYMENT_TYPE_LABEL } from '@/constants/payment';
 
 const props = defineProps({
@@ -54,7 +54,7 @@ const BILLING_PERIOD_LABEL = { monthly: 'Mensual', annual: 'Anual' };
 <template>
     <Head title="Facturación" />
 
-    <TallerLayout>
+    <CompanyLayout>
         <!-- Flash -->
         <div v-if="flash.success" class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl px-5 py-4 text-sm font-medium">
             {{ flash.success }}
@@ -216,5 +216,5 @@ const BILLING_PERIOD_LABEL = { monthly: 'Mensual', annual: 'Anual' };
                 </div>
             </div>
         </div>
-    </TallerLayout>
+    </CompanyLayout>
 </template>

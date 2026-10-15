@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import ViewTabs from '@/Components/ViewTabs.vue';
 const props = defineProps({ company: Object, users: Array });
 const params = { tenantBySlug: usePage().props.tenant?.slug };
@@ -15,7 +15,7 @@ const logo = useForm({ logo: null });
 const activeSection = ref('empresa');
 </script>
 <template>
-    <TallerLayout
+    <CompanyLayout
         ><Head title="Configuración" />
         <h1 class="text-3xl font-bold">Configuración de tu empresa</h1>
         <ViewTabs
@@ -31,7 +31,7 @@ const activeSection = ref('empresa');
             role="tabpanel"
             aria-label="Empresa"
             @submit.prevent="
-                form.patch(route('taller.settings.commercial.update', params))
+                form.patch(route('company.settings.commercial.update', params))
             "
             class="mt-6 grid max-w-3xl gap-4 rounded-2xl border border-slate-200 bg-white p-6 sm:grid-cols-2"
         >
@@ -87,7 +87,7 @@ const activeSection = ref('empresa');
             />
             <form
                 @submit.prevent="
-                    logo.post(route('taller.settings.branding.logo', params), {
+                    logo.post(route('company.settings.branding.logo', params), {
                         forceFormData: true,
                     })
                 "
@@ -125,6 +125,6 @@ const activeSection = ref('empresa');
                     {{ user.name }} · {{ user.email }}
                 </li>
             </ul>
-        </section></TallerLayout
+        </section></CompanyLayout
     >
 </template>

@@ -42,7 +42,7 @@ class TenantBrandingTest extends TestCase
         $tenant->makeCurrent();
         $this->actingAs($admin);
 
-        $response = $this->patch(route('taller.settings.branding.color', ['tenantBySlug' => $tenant->slug]), [
+        $response = $this->patch(route('company.settings.branding.color', ['tenantBySlug' => $tenant->slug]), [
             'primary_color' => '#123456',
         ]);
 
@@ -63,7 +63,7 @@ class TenantBrandingTest extends TestCase
         $tenant->makeCurrent();
         $this->actingAs($admin);
 
-        $response = $this->patch(route('taller.settings.branding.color', ['tenantBySlug' => $tenant->slug]), [
+        $response = $this->patch(route('company.settings.branding.color', ['tenantBySlug' => $tenant->slug]), [
             'primary_color' => 'invalid-color',
         ]);
 
@@ -85,7 +85,7 @@ class TenantBrandingTest extends TestCase
         $user->assignRole('Vendedor');
         $this->actingAs($user);
 
-        $response = $this->patch(route('taller.settings.branding.color', ['tenantBySlug' => $tenant->slug]), [
+        $response = $this->patch(route('company.settings.branding.color', ['tenantBySlug' => $tenant->slug]), [
             'primary_color' => '#123456',
         ]);
 
@@ -108,7 +108,7 @@ class TenantBrandingTest extends TestCase
 
         $logo = UploadedFile::fake()->image('logo.png', 100, 100);
 
-        $response = $this->post(route('taller.settings.branding.logo', ['tenantBySlug' => $tenant->slug]), [
+        $response = $this->post(route('company.settings.branding.logo', ['tenantBySlug' => $tenant->slug]), [
             'logo' => $logo,
         ]);
 
@@ -137,7 +137,7 @@ class TenantBrandingTest extends TestCase
         Storage::disk('public')->put($logoPath, 'fake-logo-content');
         $tenant->update(['logo_path' => $logoPath]);
 
-        $response = $this->delete(route('taller.settings.branding.logo.delete', ['tenantBySlug' => $tenant->slug]));
+        $response = $this->delete(route('company.settings.branding.logo.delete', ['tenantBySlug' => $tenant->slug]));
 
         $response->assertRedirect();
 

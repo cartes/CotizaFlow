@@ -1,10 +1,10 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 defineProps({ companies: Array });
 </script>
 <template>
-    <TallerLayout
+    <CompanyLayout
         ><Head title="Administración" />
         <h1 class="text-3xl font-bold">Empresas de CotizaFlow</h1>
         <section
@@ -33,7 +33,7 @@ defineProps({ companies: Array });
                         <td class="p-4">
                             <Link
                                 :href="
-                                    route('taller.dashboard', {
+                                    route('company.dashboard', {
                                         tenantBySlug: company.slug,
                                     })
                                 "
@@ -44,6 +44,6 @@ defineProps({ companies: Array });
                     </tr>
                 </tbody>
             </table>
-        </section></TallerLayout
+        </section></CompanyLayout
     >
 </template>

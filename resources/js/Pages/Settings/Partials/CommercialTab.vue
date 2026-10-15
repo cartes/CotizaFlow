@@ -13,7 +13,7 @@ const commercialForm = useForm({
 });
 
 const submitCommercialSettings = () => {
-    commercialForm.patch(route('taller.settings.commercial.update', tenantRouteParams.value), {
+    commercialForm.patch(route('company.settings.commercial.update', tenantRouteParams.value), {
         preserveScroll: true,
     });
 };

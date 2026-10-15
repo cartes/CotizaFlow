@@ -24,7 +24,7 @@ class TenantCommercialSettingsTest extends TestCase
         $admin->assignRole('Admin');
 
         $this->actingAs($admin)
-            ->patch(route('taller.settings.commercial.update', ['tenantBySlug' => $tenant->slug]), [
+            ->patch(route('company.settings.commercial.update', ['tenantBySlug' => $tenant->slug]), [
                 'max_discount_without_approval' => 18.5,
             ])
             ->assertRedirect();
@@ -64,7 +64,7 @@ class TenantCommercialSettingsTest extends TestCase
         $admin->assignRole('Admin');
 
         $this->actingAs($admin)
-            ->get(route('taller.dashboard', ['tenantBySlug' => $tenant->slug]))
+            ->get(route('company.dashboard', ['tenantBySlug' => $tenant->slug]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Dashboard')

@@ -17,7 +17,7 @@
         $canonicalUrl = is_array($seo) && filled($seo['canonical_url'] ?? null)
             ? $seo['canonical_url']
             : request()->url();
-        // Páginas sin bloque `seo` (app del taller, admin, login, tracking, checkout) no se indexan.
+        // Páginas sin bloque `seo` (app, administración, login, seguimiento y checkout) no se indexan.
         // Nota: esto depende de que exista el bloque `seo` (identidad de página pública),
         // no de si el admin dejó la descripción vacía — una descripción vacía no debe
         // des-indexar la página ni quitarle canonical/OG.
@@ -68,7 +68,9 @@
                 @endif
             @endif
             <meta name="twitter:card" content="{{ $seoTwitterCard }}" inertia>
-            <meta name="twitter:site" content="{{ \App\Support\MarketingSeoPages::TWITTER_SITE }}" inertia>
+            @if (filled(\App\Support\MarketingSeoPages::TWITTER_SITE))
+                <meta name="twitter:site" content="{{ \App\Support\MarketingSeoPages::TWITTER_SITE }}" inertia>
+            @endif
             <meta name="twitter:title" content="{{ $seoTitle }}" inertia>
             @if (filled($seoDescription))
                 <meta name="twitter:description" content="{{ $seoDescription }}" inertia>

@@ -4,7 +4,7 @@ import { Head, usePage } from '@inertiajs/vue3';
 import PpuScanner from '@/Components/PpuScanner.vue';
 import PlanUpgradeBanner from '@/Components/PlanUpgradeBanner.vue';
 import CreateWorkOrderModal from '@/Components/Reception/CreateWorkOrderModal.vue';
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import { useTenantRouting } from '@/composables/useTenantRouting';
 
 const page = usePage();
@@ -177,7 +177,7 @@ onUnmounted(() => {
 <template>
     <Head title="Recepción" />
 
-    <TallerLayout>
+    <CompanyLayout>
         <!-- CASO PRO: Escáner de Patente IA -->
         <PpuScanner
             v-if="aiReceptionEnabled"
@@ -252,5 +252,5 @@ onUnmounted(() => {
             class="fixed top-24 left-1/2 -translate-x-1/2 bg-[#E61919] text-white px-8 py-4 rounded-full font-bold shadow-2xl z-50">
             {{ errorMsg }}
         </div>
-    </TallerLayout>
+    </CompanyLayout>
 </template>

@@ -33,7 +33,7 @@ class TenantSettingsTest extends TestCase
         $tenant->makeCurrent();
         $this->actingAs($admin);
 
-        $response = $this->get(route('taller.settings', ['tenantBySlug' => $tenant->slug]));
+        $response = $this->get(route('company.settings', ['tenantBySlug' => $tenant->slug]));
 
         $response->assertStatus(200);
         $response->assertInertia(fn (Assert $page) => $page->component('Settings/Index'));
@@ -56,7 +56,7 @@ class TenantSettingsTest extends TestCase
         $tenant->makeCurrent();
         $this->actingAs($admin);
 
-        $response = $this->get(route('taller.settings', ['tenantBySlug' => $tenant->slug]));
+        $response = $this->get(route('company.settings', ['tenantBySlug' => $tenant->slug]));
 
         $response->assertInertia(fn (Assert $page) => $page
             ->component('Settings/Index')
@@ -82,7 +82,7 @@ class TenantSettingsTest extends TestCase
         $user->assignRole('Vendedor');
         $this->actingAs($user);
 
-        $response = $this->get(route('taller.settings', ['tenantBySlug' => $tenant->slug]));
+        $response = $this->get(route('company.settings', ['tenantBySlug' => $tenant->slug]));
 
         $response->assertStatus(403);
 
@@ -103,7 +103,7 @@ class TenantSettingsTest extends TestCase
         $tenantA->makeCurrent();
         $this->actingAs($adminA);
 
-        $response = $this->get(route('taller.settings', ['tenantBySlug' => $tenantA->slug]));
+        $response = $this->get(route('company.settings', ['tenantBySlug' => $tenantA->slug]));
 
         $response->assertInertia(fn (Assert $page) => $page
             ->component('Settings/Index')
@@ -125,7 +125,7 @@ class TenantSettingsTest extends TestCase
         $tenant->makeCurrent();
         $this->actingAs($admin);
 
-        $response = $this->patch(route('taller.settings.commercial.update', ['tenantBySlug' => $tenant->slug]), [
+        $response = $this->patch(route('company.settings.commercial.update', ['tenantBySlug' => $tenant->slug]), [
             'name' => 'Nuevo Nombre SpA',
             'phone' => '+56987654321',
             'comuna' => 'Providencia',

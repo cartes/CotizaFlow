@@ -81,7 +81,7 @@ class TenantWelcomeService
             'completed' => ! empty($state['completed_at']),
             'url' => route('taller.welcome.show', ['tenantBySlug' => $tenant->slug]),
             'update_url' => route('taller.welcome.update', ['tenantBySlug' => $tenant->slug]),
-            'dashboard_url' => route('taller.dashboard', ['tenantBySlug' => $tenant->slug]),
+            'dashboard_url' => route('company.dashboard', ['tenantBySlug' => $tenant->slug]),
             'public_url' => route('taller.landing', ['tenantBySlug' => $tenant->slug]),
         ];
     }

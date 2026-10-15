@@ -29,7 +29,7 @@ onErrorCaptured((caughtError) => {
             No pudimos mostrar esta vista. Nuestro equipo ya fue notificado.
         </p>
         <Link
-            :href="route('taller.dashboard', tenantRouteParams)"
+            :href="route('company.dashboard', tenantRouteParams)"
             class="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-gray-900 px-5 py-3 text-sm font-black text-white shadow-sm transition-colors hover:bg-gray-800"
         >
             Volver al dashboard

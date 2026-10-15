@@ -6,7 +6,7 @@ import axios from 'axios';
 import AppointmentCalendar from '@/Components/AppointmentCalendar.vue';
 import AppointmentList from '@/Components/AppointmentList.vue';
 import PlanUpgradeBanner from '@/Components/PlanUpgradeBanner.vue';
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 
 const props = defineProps({
     appointments: {
@@ -115,7 +115,7 @@ const notificationStatusClass = (status) => ({
 <template>
     <Head title="Agendamiento y Recepción" />
 
-    <TallerLayout>
+    <CompanyLayout>
         <div class="space-y-8">
             <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
@@ -414,5 +414,5 @@ const notificationStatusClass = (status) => ({
                 </div>
             </div>
         </div>
-    </TallerLayout>
+    </CompanyLayout>
 </template>

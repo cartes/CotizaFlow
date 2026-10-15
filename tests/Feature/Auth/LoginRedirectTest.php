@@ -56,7 +56,7 @@ class LoginRedirectTest extends TestCase
             'password' => 'password',
         ]);
 
-        $response->assertRedirect(route('taller.dashboard', ['tenantBySlug' => $this->tenant->slug]));
+        $response->assertRedirect(route('company.dashboard', ['tenantBySlug' => $this->tenant->slug]));
     }
 
     public function test_user_without_tenant_is_redirected_to_generic_dashboard(): void
@@ -83,7 +83,7 @@ class LoginRedirectTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('dashboard'))
-            ->assertRedirect(route('taller.dashboard', ['tenantBySlug' => $this->tenant->slug]));
+            ->assertRedirect(route('company.dashboard', ['tenantBySlug' => $this->tenant->slug]));
     }
 
     public function test_tenant_route_defaults_include_current_tenant_slug(): void
@@ -117,7 +117,7 @@ class LoginRedirectTest extends TestCase
 
     public function test_taller_dashboard_requires_authentication(): void
     {
-        $this->get(route('taller.dashboard', ['tenantBySlug' => $this->tenant->slug]))
+        $this->get(route('company.dashboard', ['tenantBySlug' => $this->tenant->slug]))
             ->assertRedirect(route('login'));
     }
 
@@ -131,7 +131,7 @@ class LoginRedirectTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->get(route('taller.dashboard', ['tenantBySlug' => $otherTenant->slug]))
+            ->get(route('company.dashboard', ['tenantBySlug' => $otherTenant->slug]))
             ->assertForbidden();
     }
 }

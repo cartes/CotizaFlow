@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import ReportsNavigation from '@/Components/ReportsNavigation.vue';
 import { useTenantRouting } from '@/composables/useTenantRouting';
 
@@ -15,7 +15,7 @@ defineProps({
 <template>
     <Head title="Centro de Reportes" />
 
-    <TallerLayout>
+    <CompanyLayout>
         <div class="space-y-8">
             <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
@@ -26,7 +26,7 @@ defineProps({
 
                 <div class="flex flex-wrap gap-3">
                     <Link
-                        :href="route('taller.dashboard', tenantRouteParams)"
+                        :href="route('company.dashboard', tenantRouteParams)"
                         class="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm font-black text-gray-700 transition-colors hover:bg-gray-50"
                     >
                         Volver al dashboard
@@ -85,5 +85,5 @@ defineProps({
                 </Link>
             </div>
         </div>
-    </TallerLayout>
+    </CompanyLayout>
 </template>

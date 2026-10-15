@@ -11,13 +11,13 @@ defineProps({
     summary: Object,
 });
 
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 </script>
 
 <template>
     <Head title="Facturas" />
 
-    <TallerLayout>
+    <CompanyLayout>
         <div class="space-y-8">
             <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
@@ -92,5 +92,5 @@ import TallerLayout from '@/Layouts/TallerLayout.vue';
                 </div>
             </div>
         </div>
-    </TallerLayout>
+    </CompanyLayout>
 </template>

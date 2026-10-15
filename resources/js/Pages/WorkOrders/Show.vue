@@ -1,7 +1,7 @@
 <script setup>
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
-import TallerLayout from '@/Layouts/TallerLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import { useStatusConfig } from '@/composables/useStatusConfig';
 import QuoteSidebar from './Partials/QuoteSidebar.vue';
 import QuoteItemsTable from './Partials/QuoteItemsTable.vue';
@@ -93,7 +93,7 @@ const showDeleteModal = ref(false);
 <template>
     <Head :title="`OT #${workOrder.id} — ${workOrder.vehicle?.plate ?? ''}`" />
 
-    <TallerLayout>
+    <CompanyLayout>
         <div class="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-6">
 
             <!-- Header compacto sin card -->
@@ -229,5 +229,5 @@ const showDeleteModal = ref(false);
         <EditCatalogItemModal v-model:show="showCatalogEditModal" :item="editingCatalogItem" :tax-name="taxName" :default-tax-rate="defaultTaxRate" />
         <ApproveManuallyModal v-model:show="showApproveManuallyModal" :work-order-id="workOrder.id" />
         <DeleteWorkOrderModal v-model:show="showDeleteModal" :work-order="workOrder" />
-    </TallerLayout>
+    </CompanyLayout>
 </template>
