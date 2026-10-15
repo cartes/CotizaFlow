@@ -1,5 +1,5 @@
 /**
- * Composable para normalización, formateo (sin puntos) y validación
+ * Composable para normalización, formateo y validación
  * de documentos de identidad con dígito verificador para todos los países soportados.
  */
 
@@ -138,18 +138,26 @@ export function useIdentification() {
     };
 
     /**
-     * Formatea RUT chileno sin puntos: "1234" -> "123-4", "12345678-9" o "12345678-K".
-     * Si tiene menos de 4 dígitos (ej: "123"), se mantiene limpio para permitir escritura fluida.
+     * Formatea RUT chileno progresivamente con puntos y guion.
      */
     const formatRut = (value) => {
         const clean = cleanIdentification(value);
         const stripped = clean.replace(/[^0-9K]/g, '');
-        if (stripped.length < 4) return stripped;
+        const hasCheckDigitSeparator = clean.includes('-');
+        let body = stripped.slice(0, -1);
+        let dv = stripped.slice(-1);
 
-        const body = stripped.slice(0, -1);
-        const dv = stripped.slice(-1);
+        if (hasCheckDigitSeparator) {
+            const [rawBody, rawCheckDigit = ''] = clean.split('-', 2);
+            body = rawBody.replace(/\D/g, '');
+            dv = rawCheckDigit.replace(/[^0-9K]/g, '');
+        } else if (stripped.length < 2) {
+            return stripped;
+        }
 
-        return `${body}-${dv}`;
+        const groupedBody = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+        return `${groupedBody}${dv ? `-${dv}` : ''}`;
     };
 
     /**
@@ -394,7 +402,7 @@ export function useIdentification() {
     };
 
     /**
-     * Formateador universal por código de país (sin puntos).
+     * Formateador universal por código de país.
      */
     const formatIdentification = (value, countryCode = 'CL') => {
         const code = (countryCode || 'CL').toUpperCase().trim();

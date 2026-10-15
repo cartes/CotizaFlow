@@ -25,14 +25,19 @@ use Inertia\Response;
 
 class ManualQuoteController extends Controller
 {
+    private const QUOTE_STATUSES = [Quote::STATUS_DRAFT, Quote::STATUS_PENDING_CUSTOMER, Quote::STATUS_ACCEPTED, Quote::STATUS_REJECTED];
+
     public function __construct(protected ManualQuoteService $manualQuoteService, protected QuoteItemService $quoteItemService) {}
 
     public function index(Request $request): Response
     {
         $search = $request->string('search')->toString();
+        $status = $request->string('status')->toString();
+        $status = in_array($status, self::QUOTE_STATUSES, true) ? $status : '';
 
         return Inertia::render('Quotes/Index', [
-            'quotes' => Quote::query()->whereNotNull('client_id')->with('client:id,name,rut')->when($search, function ($query) use ($search): void {
+            'counts' => Quote::query()->whereNotNull('client_id')->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status'),
+            'quotes' => Quote::query()->whereNotNull('client_id')->with('client:id,name,rut')->when($status, fn ($query) => $query->where('status', $status))->when($search, function ($query) use ($search): void {
                 $escaped = addcslashes($search, '%_');
                 $query->whereHas('client', function ($query) use ($escaped): void {
                     $query->where(function ($query) use ($escaped): void {
@@ -40,13 +45,18 @@ class ManualQuoteController extends Controller
                     });
                 });
             })->latest()->paginate(15)->withQueryString(),
-            'filters' => ['search' => $search],
+            'filters' => ['search' => $search, 'status' => $status],
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        return Inertia::render('Quotes/Create', ['clients' => Client::query()->orderBy('name')->get(['id', 'name', 'rut'])]);
+        $clients = Client::query()->orderBy('name')->get(['id', 'name', 'rut']);
+
+        return Inertia::render('Quotes/Create', [
+            'clients' => $clients,
+            'selectedClientId' => $clients->firstWhere('id', $request->integer('client'))?->id,
+        ]);
     }
 
     public function store(StoreManualQuoteRequest $request): RedirectResponse

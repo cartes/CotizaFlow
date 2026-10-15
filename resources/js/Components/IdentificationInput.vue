@@ -16,6 +16,10 @@ const props = defineProps({
         type: String,
         default: null,
     },
+    hideLabel: {
+        type: Boolean,
+        default: false,
+    },
     placeholder: {
         type: String,
         default: null,
@@ -44,6 +48,10 @@ const props = defineProps({
         type: String,
         default: '',
     },
+    compact: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const emit = defineEmits(['update:modelValue', 'change', 'blur', 'validate']);
@@ -63,7 +71,7 @@ const activeCountry = computed(() => {
 
 const countryConfig = computed(() => getCountryConfig(activeCountry.value));
 
-const fieldLabel = computed(() => props.label || countryConfig.value.docName);
+const fieldLabel = computed(() => props.hideLabel ? null : (props.label || countryConfig.value.docName));
 const fieldPlaceholder = computed(() => props.placeholder || countryConfig.value.placeholder);
 
 const cleanValue = computed(() => cleanIdentification(props.modelValue));
@@ -96,11 +104,11 @@ const handleBlur = (event) => {
 <template>
     <div class="space-y-1.5 w-full">
         <div v-if="fieldLabel" class="flex items-center justify-between">
-            <label class="block text-[9px] font-bold text-gray-400 uppercase tracking-widest ml-1">
+            <label :class="compact ? 'block text-sm font-medium text-gray-700' : 'block text-[9px] font-bold text-gray-400 uppercase tracking-widest ml-1'">
                 {{ fieldLabel }}
                 <span v-if="required" class="text-rose-500">*</span>
             </label>
-            <span v-if="countryConfig" class="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+            <span v-if="countryConfig && !compact" class="text-[9px] font-bold uppercase tracking-wider text-slate-400">
                 {{ countryConfig.flag }} {{ countryConfig.name }}
             </span>
         </div>
@@ -117,7 +125,9 @@ const handleBlur = (event) => {
                 autocomplete="off"
                 spellcheck="false"
                 :class="[
-                    'w-full bg-white border text-gray-900 text-lg font-bold rounded-2xl px-5 py-4 placeholder-gray-300 uppercase transition-all shadow-sm focus:outline-none',
+                    compact
+                        ? 'w-full rounded-lg border-slate-300 text-gray-900 uppercase focus:border-orange-500 focus:ring-orange-500'
+                        : 'w-full bg-white border text-gray-900 text-lg font-bold rounded-2xl px-5 py-4 placeholder-gray-300 uppercase transition-all shadow-sm focus:outline-none',
                     errorMessage
                         ? 'border-rose-300 focus:ring-2 focus:ring-rose-400 focus:border-transparent bg-rose-50/20'
                         : isValid === true
@@ -151,7 +161,7 @@ const handleBlur = (event) => {
         </div>
 
         <!-- Mensajes de error / ayuda -->
-        <p v-if="errorMessage" class="text-rose-500 text-[10px] font-medium ml-1">
+        <p v-if="errorMessage" :class="compact ? 'text-xs text-red-600' : 'text-rose-500 text-[10px] font-medium ml-1'">
             {{ errorMessage }}
         </p>
         <p

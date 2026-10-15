@@ -24,7 +24,12 @@ class ClientController extends Controller
                 $query->where(function ($query) use ($escaped): void {
                     $query->where('name', 'like', "%{$escaped}%")->orWhere('rut', 'like', "%{$escaped}%");
                 });
-            })->orderBy('name')->paginate(15)->withQueryString(),
+            })->withCount([
+                'quotes',
+                'quotes as pending_count' => fn ($query) => $query->where('status', Quote::STATUS_PENDING_CUSTOMER),
+            ])->withSum([
+                'quotes as sold_amount' => fn ($query) => $query->where('status', Quote::STATUS_ACCEPTED),
+            ], 'total_amount')->orderBy('name')->paginate(15)->withQueryString(),
             'filters' => ['search' => $search],
         ]);
     }
@@ -38,9 +43,18 @@ class ClientController extends Controller
 
     public function show(Client $client): Response
     {
+        $quotes = Quote::query()->where('client_id', $client->id)->latest()->get();
+        $sentQuotes = $quotes->where('status', '!=', Quote::STATUS_DRAFT);
+
         return Inertia::render('Clients/Show', [
             'client' => $client,
-            'quotes' => Quote::query()->where('client_id', $client->id)->latest()->get(),
+            'quotes' => $quotes,
+            'stats' => [
+                'quoted_amount' => (float) $sentQuotes->sum('total_amount'),
+                'sold_amount' => (float) $quotes->where('status', Quote::STATUS_ACCEPTED)->sum('total_amount'),
+                'pending_count' => $quotes->where('status', Quote::STATUS_PENDING_CUSTOMER)->count(),
+                'quotes_count' => $quotes->count(),
+            ],
         ]);
     }
 

@@ -31,6 +31,11 @@ class Client extends Model
         'max_credit_limit' => 'decimal:2',
     ];
 
+    public function quotes(): HasMany
+    {
+        return $this->hasMany(Quote::class);
+    }
+
     public function vehicles(): HasMany
     {
         return $this->hasMany(Vehicle::class);

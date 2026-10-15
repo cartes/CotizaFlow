@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PasswordInput from '@/Components/PasswordInput.vue';
+import IdentificationInput from '@/Components/IdentificationInput.vue';
 import { useIdentification } from '@/composables/useIdentification';
 
 const props = defineProps({
@@ -171,34 +172,17 @@ const setTrialPeriod = (months) => {
                         </div>
 
                         <div>
-                            <label for="rut_taller" class="block text-sm font-medium text-gray-700">
-                                {{ docLabel }} del Taller
-                            </label>
-                            <div class="relative mt-2 rounded-md shadow-sm">
-                                <input
-                                    type="text"
-                                    id="rut_taller"
-                                    v-model="tenantForm.rut_taller"
-                                    :placeholder="docPlaceholder"
-                                    class="block w-full rounded-md border-gray-200 pr-10 text-gray-900 focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
-                                />
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                                    <span v-if="isRutValid === true" class="text-emerald-600" title="Dígito verificador válido">
-                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </span>
-                                    <span v-else-if="isRutValid === false" class="text-rose-500" title="Dígito verificador inválido">
-                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </span>
-                                </div>
-                            </div>
+                            <IdentificationInput
+                                v-model="tenantForm.rut_taller"
+                                :country="tenantForm.country"
+                                :label="`${docLabel} del Taller`"
+                                :placeholder="docPlaceholder"
+                                compact
+                                :error-message="tenantForm.errors.rut_taller"
+                            />
                             <p v-if="isRutValid === false" class="mt-1 text-xs text-rose-500">
                                 El dígito verificador no es válido para {{ countryConfig.name }}.
                             </p>
-                            <div v-if="tenantForm.errors.rut_taller" class="mt-1 text-sm text-red-600">{{ tenantForm.errors.rut_taller }}</div>
                         </div>
 
                         <div>

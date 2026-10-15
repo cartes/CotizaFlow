@@ -157,4 +157,47 @@ class ManualQuoteControllerTest extends TestCase
         $user = User::factory()->create(['tenant_id' => $this->admin->tenant_id]);
         $this->actingAs($user)->get(route('quotes.index'))->assertForbidden();
     }
+
+    public function test_index_filters_by_status_and_returns_counts(): void
+    {
+        $this->draft();
+        $accepted = $this->draft();
+        $accepted->update(['status' => Quote::STATUS_ACCEPTED]);
+
+        $this->actingAs($this->admin)->get(route('quotes.index', ['status' => 'accepted']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Quotes/Index')
+                ->has('quotes.data', 1)
+                ->where('quotes.data.0.id', $accepted->id)
+                ->where('filters.status', 'accepted')
+                ->where('counts.draft', 1)
+                ->where('counts.accepted', 1)
+            );
+
+        $this->actingAs($this->admin)->get(route('quotes.index', ['status' => 'invalid']))
+            ->assertInertia(fn (Assert $page) => $page->has('quotes.data', 2)->where('filters.status', ''));
+    }
+
+    public function test_create_preselects_only_a_client_of_the_company(): void
+    {
+        $this->actingAs($this->admin)->get(route('quotes.create', ['client' => $this->client->id]))
+            ->assertInertia(fn (Assert $page) => $page->where('selectedClientId', $this->client->id));
+
+        $this->actingAs($this->admin)->get(route('quotes.create', ['client' => 999999]))
+            ->assertInertia(fn (Assert $page) => $page->where('selectedClientId', null));
+    }
+
+    public function test_dashboard_lists_oldest_pending_quotes_for_follow_up(): void
+    {
+        $older = $this->draft();
+        $older->update(['status' => Quote::STATUS_PENDING_CUSTOMER, 'sent_at' => now()->subDays(6)]);
+        $newer = $this->draft();
+        $newer->update(['status' => Quote::STATUS_PENDING_CUSTOMER, 'sent_at' => now()->subDay()]);
+
+        $this->actingAs($this->admin)->get(route('company.dashboard'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('followUps', 2)
+                ->where('followUps.0.id', $older->id)
+            );
+    }
 }

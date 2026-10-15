@@ -34,15 +34,14 @@ class CountryIdentificationTest extends TestCase
         $this->assertFalse(Country::Chile->validateIdentification('123'));
     }
 
-    public function test_chilean_rut_formatting_without_dots(): void
+    public function test_chilean_rut_formatting_with_dots(): void
     {
-        $this->assertSame('12345678-5', Country::Chile->formatIdentification('12.345.678-5'));
-        $this->assertSame('11111111-1', Country::Chile->formatIdentification('111111111'));
-        $this->assertSame('11111112-K', Country::Chile->formatIdentification('11.111.112-k'));
-        // Formateo progresivo desde 4 dígitos
-        $this->assertSame('123', Country::Chile->formatIdentification('123'));
+        $this->assertSame('12.345.678-5', Country::Chile->formatIdentification('12.345.678-5'));
+        $this->assertSame('11.111.111-1', Country::Chile->formatIdentification('111111111'));
+        $this->assertSame('11.111.112-K', Country::Chile->formatIdentification('11.111.112-k'));
+        $this->assertSame('12-3', Country::Chile->formatIdentification('123'));
         $this->assertSame('123-4', Country::Chile->formatIdentification('1234'));
-        $this->assertSame('1234-5', Country::Chile->formatIdentification('12345'));
+        $this->assertSame('1.234-5', Country::Chile->formatIdentification('12345'));
     }
 
     public function test_colombian_nit_and_cedula_validation(): void

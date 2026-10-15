@@ -941,7 +941,8 @@ const handleCreateOrder = () => {
                                         </span>
                                     </div>
                                     <div class="relative">
-                                        <input v-model="form.client_rut" type="text"
+                                    <input v-model="form.client_rut" type="text"
+                                        :placeholder="tenantCountry === 'CL' ? '11.111.111-1' : undefined"
                                             class="w-full bg-white border text-gray-900 text-lg font-bold rounded-2xl px-5 py-4 placeholder-gray-300 focus:outline-none transition-all shadow-sm uppercase"
                                             :class="[
                                                 form.errors.client_rut

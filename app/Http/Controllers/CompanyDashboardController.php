@@ -25,6 +25,7 @@ class CompanyDashboardController extends Controller
                 'accepted' => (clone $quotes)->where('status', Quote::STATUS_ACCEPTED)->count(),
                 'accepted_amount' => (clone $quotes)->where('status', Quote::STATUS_ACCEPTED)->sum('total_amount'),
             ],
+            'followUps' => (clone $quotes)->where('status', Quote::STATUS_PENDING_CUSTOMER)->with('client:id,name')->orderBy('sent_at')->limit(5)->get(),
             'recentQuotes' => (clone $quotes)->with('client:id,name')->latest()->limit(8)->get(),
         ]);
     }
@@ -33,7 +34,8 @@ class CompanyDashboardController extends Controller
     {
         return Inertia::render('Quotes/Index', [
             'quotes' => Quote::query()->whereNotNull('client_id')->where('status', Quote::STATUS_PENDING_CUSTOMER)->with('client:id,name,rut')->orderBy('sent_at')->paginate(15),
-            'filters' => ['search' => ''],
+            'filters' => ['search' => '', 'status' => ''],
+            'counts' => Quote::query()->whereNotNull('client_id')->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status'),
             'followUp' => true,
         ]);
     }

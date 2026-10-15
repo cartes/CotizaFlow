@@ -227,7 +227,7 @@ enum Country: string
     }
 
     /**
-     * Formatea un número de identificación sin puntos (ej: 12345678-9 en Chile).
+     * Formatea un número de identificación según las convenciones del país.
      */
     public function formatIdentification(?string $value): string
     {
@@ -273,15 +273,23 @@ enum Country: string
 
     private function formatChileanRut(string $clean): string
     {
-        $stripped = preg_replace('/[^0-9K]/', '', $clean) ?? '';
-        if (strlen($stripped) < 4) {
-            return $stripped;
-        }
-
+        $normalized = strtoupper($clean);
+        $hasCheckDigitSeparator = str_contains($normalized, '-');
+        $stripped = preg_replace('/[^0-9K]/', '', $normalized) ?? '';
         $body = substr($stripped, 0, -1);
         $dv = substr($stripped, -1);
 
-        return $body.'-'.$dv;
+        if ($hasCheckDigitSeparator) {
+            [$rawBody, $rawCheckDigit] = array_pad(explode('-', $normalized, 2), 2, '');
+            $body = preg_replace('/[^0-9]/', '', $rawBody) ?? '';
+            $dv = preg_replace('/[^0-9K]/', '', $rawCheckDigit) ?? '';
+        } elseif (strlen($stripped) < 2) {
+            return $stripped;
+        }
+
+        $groupedBody = preg_replace('/\B(?=(\d{3})+(?!\d))/', '.', $body) ?? $body;
+
+        return $groupedBody.($dv !== '' ? '-'.$dv : '');
     }
 
     private function formatColombianIdentification(string $clean): string

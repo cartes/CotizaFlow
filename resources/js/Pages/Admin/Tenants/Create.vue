@@ -3,6 +3,7 @@ import { computed, watch } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import PasswordInput from '@/Components/PasswordInput.vue';
+import IdentificationInput from '@/Components/IdentificationInput.vue';
 import { useIdentification } from '@/composables/useIdentification';
 
 const {
@@ -108,27 +109,17 @@ const submit = () => {
                         </div>
 
                         <div>
-                            <div class="flex items-center justify-between">
-                                <label for="rut_taller" class="block text-sm font-medium text-gray-700">{{ docLabel }} del Taller</label>
-                                <span class="text-xs text-slate-400">{{ countryConfig.flag }}</span>
-                            </div>
-                            <div class="relative mt-2">
-                                <input
-                                    type="text"
-                                    id="rut_taller"
-                                    v-model="form.rut_taller"
-                                    :placeholder="docPlaceholder"
-                                    class="block w-full rounded-md border-gray-200 text-gray-900 shadow-sm uppercase focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
-                                />
-                                <div v-if="form.rut_taller" class="absolute inset-y-0 right-3 flex items-center">
-                                    <span v-if="isRutValid === true" class="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 text-xs font-black">✓</span>
-                                    <span v-else-if="isRutValid === false && form.rut_taller.length >= 7" class="flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-amber-600 text-xs font-black">!</span>
-                                </div>
-                            </div>
+                            <IdentificationInput
+                                v-model="form.rut_taller"
+                                :country="form.country"
+                                :label="`${docLabel} del Taller`"
+                                :placeholder="docPlaceholder"
+                                compact
+                                :error-message="form.errors.rut_taller"
+                            />
                             <p v-if="isRutValid === false && form.rut_taller.length >= 7" class="mt-1 text-xs text-amber-600">
                                 Verifique el dígito verificador (ej: {{ docPlaceholder }})
                             </p>
-                            <div v-if="form.errors.rut_taller" class="mt-1 text-sm text-red-600">{{ form.errors.rut_taller }}</div>
                         </div>
 
                         <div>

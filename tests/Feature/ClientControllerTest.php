@@ -116,6 +116,43 @@ class ClientControllerTest extends TestCase
             );
     }
 
+    public function test_index_and_show_expose_commercial_totals_per_client(): void
+    {
+        $tenant = $this->setUpTenant();
+        $admin = $this->createAdmin($tenant);
+        $client = $this->createClient(['tenant_id' => $tenant->id, 'name' => 'Ana Cliente', 'rut' => '44444444-4']);
+
+        foreach ([
+            [Quote::STATUS_DRAFT, 1000],
+            [Quote::STATUS_PENDING_CUSTOMER, 2000],
+            [Quote::STATUS_ACCEPTED, 5000],
+        ] as [$status, $total]) {
+            Quote::create([
+                'tenant_id' => $tenant->id,
+                'client_id' => $client->id,
+                'status' => $status,
+                'total_amount' => $total,
+            ]);
+        }
+
+        $this->actingAs($admin)
+            ->get(route('clients.index', ['tenantBySlug' => $tenant->slug]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('clients.data.0.quotes_count', 3)
+                ->where('clients.data.0.pending_count', 1)
+                ->where('clients.data.0.sold_amount', 5000)
+            );
+
+        $this->actingAs($admin)
+            ->get(route('clients.show', ['tenantBySlug' => $tenant->slug, 'client' => $client->id]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('stats.quoted_amount', 7000)
+                ->where('stats.sold_amount', 5000)
+                ->where('stats.pending_count', 1)
+                ->where('stats.quotes_count', 3)
+            );
+    }
+
     public function test_update_modifies_existing_client(): void
     {
         $tenant = $this->setUpTenant();
