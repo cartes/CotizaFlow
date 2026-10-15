@@ -8,6 +8,7 @@ use App\Models\WorkOrder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Route;
 
 class WorkOrderStatusChangedNotification extends Notification
 {
@@ -33,7 +34,7 @@ class WorkOrderStatusChangedNotification extends Notification
         $plate = $this->workOrder->vehicle?->plate ?: 'sin patente';
         $statusLabel = $this->statusLabel($this->newStatus);
         $previousStatusLabel = $this->statusLabel($this->oldStatus);
-        $trackingUrl = route('tracking.show', ['uuid' => $this->workOrder->uuid]);
+        $trackingUrl = Route::has('tracking.show') ? route('tracking.show', ['uuid' => $this->workOrder->uuid]) : url('/');
 
         return (new MailMessage)
             ->subject("[Taller Flow] Tu vehiculo {$plate} ahora esta {$statusLabel}")

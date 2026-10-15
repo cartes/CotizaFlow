@@ -92,8 +92,8 @@ class LoginRedirectTest extends TestCase
 
         app(SetTenantRouteDefaults::class)->handle(Request::create('/'), function (): Response {
             $this->assertSame(
-                "/taller/{$this->tenant->slug}/work-orders",
-                route('work-orders.index', absolute: false)
+                "/empresa/{$this->tenant->slug}/cotizaciones",
+                route('quotes.index', absolute: false)
             );
 
             return response()->noContent();

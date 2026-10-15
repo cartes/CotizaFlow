@@ -26,8 +26,7 @@ class DashboardRedirectTest extends TestCase
         ]);
 
         $response
-            ->assertStatus(409)
-            ->assertHeader(Header::LOCATION, route('admin.dashboard'));
+            ->assertRedirect(route('admin.dashboard'));
     }
 
     public function test_super_admin_standard_dashboard_visit_redirects_to_admin_dashboard(): void

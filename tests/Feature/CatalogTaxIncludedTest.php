@@ -216,7 +216,6 @@ class CatalogTaxIncludedTest extends TestCase
         $seller = User::factory()->create([
             'tenant_id' => $this->tenant->id,
         ]);
-        $seller->assignRole('Mecanico');
 
         $product = Product::create([
             'name' => 'Filtro de Aceite',

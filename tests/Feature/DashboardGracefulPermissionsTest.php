@@ -14,12 +14,9 @@ class DashboardGracefulPermissionsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_dashboard_does_not_fail_when_financial_permission_is_missing_from_tenant_setup(): void
+    public function test_dashboard_does_not_fail_when_permissions_are_missing_from_user(): void
     {
-        $tenant = Tenant::factory()->create([
-            'plan' => 'profesional',
-            'plan_type' => 'profesional',
-        ]);
+        $tenant = Tenant::factory()->create();
 
         $user = User::factory()->create([
             'tenant_id' => $tenant->id,
@@ -32,7 +29,9 @@ class DashboardGracefulPermissionsTest extends TestCase
         $response->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Dashboard')
-                ->where('overdueInvoices', [])
+                ->where('stats.clients', 0)
+                ->where('stats.drafts', 0)
+                ->has('recentQuotes', 0)
             );
     }
 }

@@ -82,7 +82,7 @@ class TenantBrandingTest extends TestCase
         app(TenantSetupService::class)->provisionTenant($tenant);
 
         $tenant->makeCurrent();
-        $user->assignRole('Mecanico');
+        $user->assignRole('Vendedor');
         $this->actingAs($user);
 
         $response = $this->patch(route('taller.settings.branding.color', ['tenantBySlug' => $tenant->slug]), [

@@ -30,8 +30,7 @@ class DashboardControllerTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Admin/Dashboard')
-                ->has('new_tenants_by_month')
-                ->has('stats')
+                ->has('companies')
             );
     }
 }

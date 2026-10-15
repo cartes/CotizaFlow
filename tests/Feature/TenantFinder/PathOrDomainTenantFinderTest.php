@@ -24,7 +24,7 @@ class PathOrDomainTenantFinderTest extends TestCase
             'domain' => '127.0.0.1',
         ]);
 
-        $request = Request::create('http://127.0.0.1:8000/taller/medelauto/dashboard');
+        $request = Request::create('http://127.0.0.1:8000/empresa/medelauto/inicio');
 
         $resolvedTenant = app(PathOrDomainTenantFinder::class)->findForRequest($request);
 

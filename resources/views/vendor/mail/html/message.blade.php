@@ -1,4 +1,3 @@
-368=5
 <x-mail::layout>
     {{-- Header --}}
     <x-slot:header>
@@ -6,7 +5,7 @@
             $tenant = \App\Models\Tenant::current();
         @endphp
         @if ($tenant)
-            <x-mail::header :url="route('taller.landing', ['tenantBySlug' => $tenant->slug])">
+            <x-mail::header :url="Route::has('taller.landing') ? route('taller.landing', ['tenantBySlug' => $tenant->slug]) : (Route::has('taller.dashboard') ? route('taller.dashboard', ['tenantBySlug' => $tenant->slug]) : config('app.url'))">
                 @if ($tenant->logoUrl())
                     <img src="{{ $tenant->logoUrl() }}" class="logo" alt="{{ $tenant->name }}"
                         style="max-height: 60px; width: auto; object-fit: contain;">

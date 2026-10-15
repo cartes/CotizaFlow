@@ -13,7 +13,6 @@ use App\Models\Service;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Vehicle;
-use App\Models\WorkOrder;
 use App\Services\PlanFeatureService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -187,44 +186,5 @@ class QuoteTaxTest extends TestCase
         $this->assertSame('16.00', (string) $quote->tax_rate);
         $this->assertSame('3200.00', (string) $quote->tax_amount);
         $this->assertSame('23200.00', (string) $quote->total_amount);
-    }
-
-    public function test_work_order_quote_tax_syncs_with_work_order_total_amount(): void
-    {
-        $workOrder = WorkOrder::create([
-            'vehicle_id' => $this->vehicle->id,
-            'status' => WorkOrder::STATUS_RECEPCION,
-        ]);
-
-        // Agregar servicio por $20.000 a la OT
-        $this->actingAs($this->admin)
-            ->post(route('work-orders.items.store', ['workOrder' => $workOrder->id]), [
-                'service_id' => $this->service->id,
-                'quantity' => 1,
-            ]);
-
-        $workOrder->refresh();
-        $quote = $workOrder->quote;
-
-        $this->assertSame('20000.00', (string) $quote->subtotal_amount);
-        $this->assertSame('3800.00', (string) $quote->tax_amount);
-        $this->assertSame('23800.00', (string) $quote->total_amount);
-        $this->assertEquals(23800.00, (float) $workOrder->total_amount);
-
-        // Actualizar impuesto en la OT a 0% / desactivado
-        $this->actingAs($this->admin)
-            ->patch(route('work-orders.quote.tax', ['workOrder' => $workOrder->id]), [
-                'apply_tax' => false,
-                'tax_rate' => 19.0,
-            ])
-            ->assertSessionHasNoErrors();
-
-        $workOrder->refresh();
-        $quote->refresh();
-
-        $this->assertFalse($quote->apply_tax);
-        $this->assertSame('0.00', (string) $quote->tax_amount);
-        $this->assertSame('20000.00', (string) $quote->total_amount);
-        $this->assertEquals(20000.00, (float) $workOrder->total_amount);
     }
 }

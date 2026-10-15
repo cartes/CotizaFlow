@@ -32,6 +32,7 @@ class InventoryControllerTest extends TestCase
     public function test_admin_can_create_a_product(): void
     {
         $this->actingAs($this->admin)
+            ->from(route('inventory.index'))
             ->post(route('inventory.store'), [
                 'name' => 'Filtro de aceite',
                 'sku' => 'FA-100',

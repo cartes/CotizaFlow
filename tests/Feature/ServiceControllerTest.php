@@ -87,16 +87,11 @@ class ServiceControllerTest extends TestCase
         ]);
     }
 
-    public function test_service_module_is_blocked_when_plan_does_not_include_it(): void
+    public function test_service_module_is_blocked_without_permission(): void
     {
-        $tenant = Tenant::current();
-        $tenant->update([
-            'plan_id' => Plan::factory()->create(['feature_keys' => [], 'max_users' => 3])->id,
-        ]);
-        $tenant->refresh();
-        $tenant->makeCurrent();
+        $user = User::factory()->create(['tenant_id' => Tenant::current()->id]);
 
-        $this->actingAs($this->admin)
+        $this->actingAs($user)
             ->get(route('services.index'))
             ->assertForbidden();
     }

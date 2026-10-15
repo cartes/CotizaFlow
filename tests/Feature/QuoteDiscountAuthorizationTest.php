@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Client;
+use App\Models\Quote;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Models\Vehicle;
-use App\Models\WorkOrder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Tests\Traits\CreatesTenant;
@@ -17,43 +16,10 @@ class QuoteDiscountAuthorizationTest extends TestCase
 {
     use CreatesTenant, RefreshDatabase;
 
-    public function test_supervisor_can_apply_discount_above_tenant_threshold(): void
+    public function test_admin_can_apply_discount_above_tenant_threshold(): void
     {
-        [$tenant, $workOrder] = $this->prepareWorkOrder();
+        [$tenant, $quote] = $this->prepareQuote();
         $tenant->update([
-            'plan' => 'profesional',
-            'max_discount_without_approval' => 5,
-        ]);
-
-        $supervisor = User::factory()->create(['tenant_id' => $tenant->id]);
-        $supervisor->assignRole('Supervisor');
-
-        $this->actingAs($supervisor)
-            ->post(route('work-orders.items.store', [
-                'tenantBySlug' => $tenant->slug,
-                'workOrder' => $workOrder->id,
-            ]), [
-                'description' => 'Diagnóstico avanzado',
-                'quantity' => 1,
-                'unit_price' => 100000,
-                'discount_percent' => 12,
-            ])
-            ->assertRedirect();
-
-        $this->assertDatabaseHas('quote_items', [
-            'description' => 'Diagnóstico avanzado',
-            'discount_percent' => 12,
-            'discount_amount' => 12000,
-            'unit_price' => 88000,
-            'total_price' => 88000,
-        ]);
-    }
-
-    public function test_admin_cannot_apply_discount_above_tenant_threshold_without_approval_role(): void
-    {
-        [$tenant, $workOrder] = $this->prepareWorkOrder();
-        $tenant->update([
-            'plan' => 'profesional',
             'max_discount_without_approval' => 5,
         ]);
 
@@ -61,48 +27,76 @@ class QuoteDiscountAuthorizationTest extends TestCase
         $admin->assignRole('Admin');
 
         $this->actingAs($admin)
-            ->from(route('work-orders.show', ['tenantBySlug' => $tenant->slug, 'workOrder' => $workOrder->id]))
-            ->post(route('work-orders.items.store', [
+            ->post(route('quotes.items.store', [
                 'tenantBySlug' => $tenant->slug,
-                'workOrder' => $workOrder->id,
+                'quote' => $quote->id,
             ]), [
-                'description' => 'Diagnóstico avanzado',
+                'description' => 'Servicio especializado',
                 'quantity' => 1,
                 'unit_price' => 100000,
                 'discount_percent' => 12,
             ])
-            ->assertRedirect(route('work-orders.show', ['tenantBySlug' => $tenant->slug, 'workOrder' => $workOrder->id]))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('quote_items', [
+            'quote_id' => $quote->id,
+            'description' => 'Servicio especializado',
+            'discount_percent' => 12,
+            'discount_amount' => 12000,
+            'unit_price' => 88000,
+            'total_price' => 88000,
+        ]);
+    }
+
+    public function test_seller_cannot_apply_discount_above_tenant_threshold_without_approval(): void
+    {
+        [$tenant, $quote] = $this->prepareQuote();
+        $tenant->update([
+            'max_discount_without_approval' => 5,
+        ]);
+
+        $seller = User::factory()->create(['tenant_id' => $tenant->id]);
+        $seller->assignRole('Vendedor');
+
+        $this->actingAs($seller)
+            ->from(route('quotes.show', ['tenantBySlug' => $tenant->slug, 'quote' => $quote->id]))
+            ->post(route('quotes.items.store', [
+                'tenantBySlug' => $tenant->slug,
+                'quote' => $quote->id,
+            ]), [
+                'description' => 'Servicio especializado',
+                'quantity' => 1,
+                'unit_price' => 100000,
+                'discount_percent' => 12,
+            ])
+            ->assertRedirect(route('quotes.show', ['tenantBySlug' => $tenant->slug, 'quote' => $quote->id]))
             ->assertSessionHasErrors(['discount_percent']);
 
         $this->assertDatabaseCount('quote_items', 0);
     }
 
     /**
-     * @return array{0: Tenant, 1: WorkOrder}
+     * @return array{0: Tenant, 1: Quote}
      */
-    private function prepareWorkOrder(): array
+    private function prepareQuote(): array
     {
         $tenant = $this->setUpTenant();
 
         $client = Client::create([
-            'name' => 'Cliente Taller',
+            'name' => 'Cliente Comercial',
             'rut' => '12345678-5',
             'phone' => '+56911111111',
-            'email' => 'cliente@feeto.test',
+            'email' => 'cliente@cotizaflow.test',
         ]);
 
-        $vehicle = Vehicle::create([
+        $quote = Quote::create([
+            'tenant_id' => $tenant->id,
             'client_id' => $client->id,
-            'plate' => 'TEST44',
-            'brand' => 'Toyota',
-            'model' => 'Yaris',
+            'status' => Quote::STATUS_DRAFT,
+            'subtotal_amount' => 0,
+            'total_amount' => 0,
         ]);
 
-        $workOrder = WorkOrder::create([
-            'vehicle_id' => $vehicle->id,
-            'status' => WorkOrder::STATUS_RECEPCION,
-        ]);
-
-        return [$tenant, $workOrder];
+        return [$tenant, $quote];
     }
 }
