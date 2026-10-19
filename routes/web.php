@@ -1,6 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminProfileController;
+use App\Http\Controllers\Admin\AdminSettingsController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CompanyDashboardController;
 use App\Http\Controllers\InventoryController;
@@ -75,5 +78,24 @@ Route::middleware(['auth', 'verified', NeedsTenant::class, SetTenantRouteDefault
         Route::delete('/configuracion/logo', [TenantBrandingController::class, 'deleteLogo'])->middleware('permission:users.manage')->name('company.settings.branding.logo.delete');
     });
 
-Route::get('/admin', AdminDashboardController::class)->middleware(['auth', 'verified', IsSuperAdmin::class])->name('admin.dashboard');
+Route::middleware(['auth', 'verified', IsSuperAdmin::class])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function (): void {
+        Route::get('/', AdminDashboardController::class)->name('dashboard');
+
+        // Configuración Super Admin (Usuarios, Perfil, Configuraciones Internas)
+        Route::get('/configuracion', [AdminSettingsController::class, 'index'])->name('settings');
+
+        // Rutas de Perfil y Configuraciones Internas
+        Route::get('/profile', [AdminSettingsController::class, 'index'])->name('profile');
+        Route::put('/profile', [AdminProfileController::class, 'updateProfile'])->name('profile.update');
+        Route::put('/profile/password', [AdminProfileController::class, 'updatePassword'])->name('profile.password');
+        Route::put('/profile/api-keys', [AdminProfileController::class, 'updateApiKeys'])->name('profile.api-keys');
+        Route::put('/profile/analytics', [AdminProfileController::class, 'updateAnalytics'])->name('profile.analytics');
+
+        // Usuarios Globales
+        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::put('/users/{user}/password', [AdminUserController::class, 'changePassword'])->name('users.change-password');
+    });
 require __DIR__.'/auth.php';

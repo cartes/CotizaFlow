@@ -107,10 +107,25 @@ watch(
                         }"
                         >Administración</Link
                     >
+                    <Link
+                        v-if="user?.is_super_admin && !tenant"
+                        :href="route('admin.settings')"
+                        :class="{
+                            'is-active':
+                                route().current('admin.settings*') ||
+                                route().current('admin.profile*') ||
+                                route().current('admin.users*'),
+                        }"
+                        >Configuración</Link
+                    >
                 </nav>
                 <div class="cf-user-actions">
                     <Link
-                        :href="route('profile.edit')"
+                        :href="
+                            user?.is_super_admin && !tenant
+                                ? route('admin.settings', { tab: 'profile' })
+                                : route('profile.edit')
+                        "
                         class="cf-profile"
                         title="Mi perfil"
                         aria-label="Mi perfil"

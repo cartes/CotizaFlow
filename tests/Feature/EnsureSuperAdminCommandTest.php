@@ -58,4 +58,21 @@ class EnsureSuperAdminCommandTest extends TestCase
         $this->assertNotNull($user->email_verified_at);
         $this->assertTrue(Hash::check('NuevaClaveSegura123!', $user->password));
     }
+
+    public function test_it_can_be_called_via_cotizaflow_alias(): void
+    {
+        $this->artisan('cotizaflow:ensure-super-admin', [
+            'email' => 'nuevo-superadmin@cotizaflow.test',
+            '--name' => 'Super Admin CotizaFlow',
+            '--password' => 'CotizaPass123!',
+        ])->assertSuccessful();
+
+        $user = User::query()->where('email', 'nuevo-superadmin@cotizaflow.test')->first();
+
+        $this->assertNotNull($user);
+        $this->assertSame('Super Admin CotizaFlow', $user->name);
+        $this->assertTrue($user->is_super_admin);
+        $this->assertNull($user->tenant_id);
+        $this->assertTrue(Hash::check('CotizaPass123!', $user->password));
+    }
 }

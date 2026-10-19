@@ -18,6 +18,11 @@ use Illuminate\Support\Str;
 class EnsureSuperAdmin extends Command
 {
     /**
+     * @var list<string>
+     */
+    protected $aliases = ['cotizaflow:ensure-super-admin'];
+
+    /**
      * Execute the console command.
      */
     public function handle(): int

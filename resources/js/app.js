@@ -124,6 +124,7 @@ createInertiaApp({
                 './Pages/Profile/**/*.vue',
                 './Pages/Auth/*.vue',
                 './Pages/Admin/Dashboard.vue',
+                './Pages/Admin/Settings.vue',
             ]),
         ),
     setup({ el, App, props, plugin }) {
