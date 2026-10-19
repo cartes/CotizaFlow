@@ -123,6 +123,11 @@ onUnmounted(() => {
                 class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
               >Historial</Link>
               <Link
+                :href="route('admin.integrations.index')"
+                :class="route().current('admin.integrations.*') ? 'border-amber-500 text-white' : 'border-transparent text-slate-300 hover:border-slate-300 hover:text-white'"
+                class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
+              >Integraciones</Link>
+              <Link
                 :href="route('admin.trial-requests.index')"
                 :class="route().current('admin.trial-requests.*') ? 'border-amber-500 text-white' : 'border-transparent text-slate-300 hover:border-slate-300 hover:text-white'"
                 class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
@@ -239,6 +244,12 @@ onUnmounted(() => {
             class="block rounded-md px-3 py-2 text-base font-medium transition-colors"
             @click="showingNavigationDropdown = false"
           >Historial</Link>
+          <Link
+            :href="route('admin.integrations.index')"
+            :class="route().current('admin.integrations.*') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+            class="block rounded-md px-3 py-2 text-base font-medium transition-colors"
+            @click="showingNavigationDropdown = false"
+          >Integraciones</Link>
           <Link
             :href="route('admin.trial-requests.index')"
             :class="route().current('admin.trial-requests.*') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"

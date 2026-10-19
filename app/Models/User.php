@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\InternalAdminRole;
 use App\Notifications\ResetPasswordNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -13,7 +14,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'is_super_admin', 'tenant_id', 'branch_id', 'needs_password_change', 'onboarding_tour_completed_at', 'onboarding_sections_completed'])]
+#[Fillable(['name', 'email', 'password', 'is_super_admin', 'internal_role', 'tenant_id', 'branch_id', 'needs_password_change', 'onboarding_tour_completed_at', 'onboarding_sections_completed'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -40,6 +41,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_super_admin' => 'boolean',
+            'internal_role' => InternalAdminRole::class,
             'needs_password_change' => 'boolean',
             'onboarding_tour_completed_at' => 'datetime',
             'onboarding_sections_completed' => 'array',
@@ -72,6 +74,17 @@ class User extends Authenticatable
         return $this->tenant_id !== null
             && $this->branch_id === null
             && $this->hasRole('Admin');
+    }
+
+    public function hasSuperAdminAccess(string $permission): bool
+    {
+        if (! $this->is_super_admin) {
+            return false;
+        }
+
+        $role = $this->internal_role ?? InternalAdminRole::Owner;
+
+        return $role->allows($permission);
     }
 
     /**

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import PasswordInput from '@/Components/PasswordInput.vue';
 
 const props = defineProps({
@@ -82,7 +82,7 @@ const hasSetting = (group, key) => group?.[key]?.has_value ?? false;
 <template>
     <Head title="Mi Perfil" />
 
-    <AdminLayout>
+    <CompanyLayout>
         <div class="mb-8">
             <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Mi Perfil</h1>
             <p class="mt-1 text-sm text-slate-500">Gestiona tu cuenta y credenciales de la plataforma.</p>
@@ -525,5 +525,5 @@ const hasSetting = (group, key) => group?.[key]?.has_value ?? false;
                 </div>
             </div>
         </div>
-    </AdminLayout>
+    </CompanyLayout>
 </template>

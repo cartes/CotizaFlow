@@ -1,7 +1,7 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import { STATUS_CONFIG, PAYMENT_TYPE_LABEL } from '@/constants/payment';
 
 const props = defineProps({
@@ -48,7 +48,7 @@ function monthLabel(ym) {
 <template>
     <Head title="Historial de Pagos" />
 
-    <AdminLayout>
+    <CompanyLayout>
         <div class="mb-6 flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Historial de Pagos</h1>
@@ -240,5 +240,5 @@ function monthLabel(ym) {
             Los montos aquí reflejan el valor informado en <code>fee_details</code> de la API de MP al momento del cobro.
             El IVA (19%) sobre la comisión es calculado como <code>fee_total / 1.19 = fee_neto; fee_total - fee_neto = IVA</code>.
         </div>
-    </AdminLayout>
+    </CompanyLayout>
 </template>

@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 
 const props = defineProps({
     category: Object,
@@ -32,7 +32,7 @@ const submit = () => {
 <template>
     <Head :title="isEditing ? `Editar: ${category.name}` : 'Nueva Categoría'" />
 
-    <AdminLayout>
+    <CompanyLayout>
         <div class="mb-8 flex items-center gap-4">
             <Link
                 :href="route('admin.blog-categories.index')"
@@ -104,5 +104,5 @@ const submit = () => {
                 </button>
             </div>
         </div>
-    </AdminLayout>
+    </CompanyLayout>
 </template>

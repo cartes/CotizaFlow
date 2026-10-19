@@ -1,7 +1,7 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 
 const props = defineProps({
     tenants: Object,
@@ -115,7 +115,7 @@ const getSortLabel = () => {
 <template>
     <Head title="Gestión de empresas" />
 
-    <AdminLayout>
+    <CompanyLayout>
         <!-- Header -->
         <div class="sm:flex sm:items-center sm:justify-between mb-6">
             <div>
@@ -543,5 +543,5 @@ const getSortLabel = () => {
                 />
             </div>
         </div>
-    </AdminLayout>
+    </CompanyLayout>
 </template>

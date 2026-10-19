@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureSuperAdminPermission;
 use App\Http\Middleware\EnsureTenantFeatureEnabled;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RecordPageVisit;
@@ -37,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
             'tenant.feature' => EnsureTenantFeatureEnabled::class,
+            'admin.permission' => EnsureSuperAdminPermission::class,
         ]);
 
         $middleware->prependToPriorityList(RoleMiddleware::class, NeedsTenant::class);

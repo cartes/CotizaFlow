@@ -1,7 +1,7 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, defineAsyncComponent } from 'vue';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import VisitsTrendChart from '@/Components/Admin/VisitsTrendChart.vue';
 import VisitsSummaryStat from '@/Components/Admin/VisitsSummaryStat.vue';
 import {
@@ -95,7 +95,7 @@ const deviceSeries = computed(() => (props.report.devices ?? []).map((d) => d.vi
 <template>
     <Head title="Visitas al sitio" />
 
-    <AdminLayout>
+    <CompanyLayout>
         <!-- Encabezado -->
         <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -383,5 +383,5 @@ const deviceSeries = computed(() => (props.report.devices ?? []).map((d) => d.vi
             Los visitantes únicos se identifican con un hash irreversible de IP y navegador (o del usuario autenticado). No se guardan direcciones IP.
             Se descartan bots, prefetch, recargas parciales, peticiones JSON internas y la navegación del super-admin.
         </p>
-    </AdminLayout>
+    </CompanyLayout>
 </template>

@@ -1,7 +1,7 @@
 <script setup>
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 
 const props = defineProps({
     pages: { type: Array, default: () => [] },
@@ -112,7 +112,7 @@ const resetPage = (i) => {
 <template>
     <Head title="SEO Páginas Públicas · Admin" />
 
-    <AdminLayout>
+    <CompanyLayout>
         <div class="mb-8 flex items-start justify-between gap-4 flex-wrap">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">SEO — Páginas Públicas</h1>
@@ -450,5 +450,5 @@ const resetPage = (i) => {
                 {{ form.processing ? 'Guardando…' : 'Guardar SEO y Analytics' }}
             </button>
         </div>
-    </AdminLayout>
+    </CompanyLayout>
 </template>

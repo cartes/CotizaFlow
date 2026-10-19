@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 
 defineProps({
     posts: Array,
@@ -27,7 +27,7 @@ const deletePost = (post) => {
 <template>
     <Head title="Artículos de Blog" />
 
-    <AdminLayout>
+    <CompanyLayout>
         <div class="sm:flex sm:items-center sm:justify-between mb-8">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Artículos de Blog</h1>
@@ -114,5 +114,5 @@ const deletePost = (post) => {
                 </div>
             </div>
         </div>
-    </AdminLayout>
+    </CompanyLayout>
 </template>

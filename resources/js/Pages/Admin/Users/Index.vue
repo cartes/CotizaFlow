@@ -1,11 +1,12 @@
 <script setup>
-import { Head, useForm } from '@inertiajs/vue3';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { Head, router, useForm } from '@inertiajs/vue3';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import PasswordInput from '@/Components/PasswordInput.vue';
 import { ref } from 'vue';
 
 const props = defineProps({
     users: Object,
+    internal_roles: Object,
 });
 
 const selectedUser = ref(null);
@@ -35,12 +36,18 @@ const submitPassword = () => {
         onSuccess: () => closePasswordModal(),
     });
 };
+
+const updateInternalRole = (user, event) => {
+    router.patch(route('admin.users.internal-role', user.id), {
+        internal_role: event.target.value || null,
+    }, { preserveScroll: true });
+};
 </script>
 
 <template>
     <Head title="Usuarios Globales" />
 
-    <AdminLayout>
+    <CompanyLayout>
         <div class="sm:flex sm:items-center sm:justify-between mb-8">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Usuarios Globales</h1>
@@ -78,12 +85,24 @@ const submitPassword = () => {
                                         {{ user.email }}
                                     </td>
                                     <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500">
-                                        <span v-if="user.is_super_admin" class="inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-600/20">
-                                            Super Admin
-                                        </span>
-                                        <span v-else class="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">
-                                            Usuario Regular
-                                        </span>
+                                        <div class="flex flex-col items-start gap-2">
+                                            <span v-if="user.is_super_admin" class="inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-600/20">
+                                                {{ internal_roles[user.internal_role] || 'Propietario' }}
+                                            </span>
+                                            <span v-else class="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">
+                                                Usuario Regular
+                                            </span>
+                                            <select
+                                                v-if="!user.tenant"
+                                                :value="user.internal_role || ''"
+                                                aria-label="Rol interno"
+                                                class="rounded-md border-slate-300 py-1 text-xs"
+                                                @change="updateInternalRole(user, $event)"
+                                            >
+                                                <option value="">Sin acceso interno</option>
+                                                <option v-for="(label, role) in internal_roles" :key="role" :value="role">{{ label }}</option>
+                                            </select>
+                                        </div>
                                     </td>
                                     <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500">
                                         <span v-if="user.tenant">
@@ -184,5 +203,5 @@ const submitPassword = () => {
                 </div>
             </div>
         </Teleport>
-    </AdminLayout>
+    </CompanyLayout>
 </template>

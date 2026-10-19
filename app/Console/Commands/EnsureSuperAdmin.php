@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Enums\InternalAdminRole;
 use App\Models\User;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -43,6 +44,7 @@ class EnsureSuperAdmin extends Command
                 'name' => $name !== '' ? $name : 'Super Admin',
                 'email' => $email,
                 'is_super_admin' => true,
+                'internal_role' => InternalAdminRole::Owner,
                 'tenant_id' => null,
             ]);
             $user->email_verified_at = now();
@@ -68,6 +70,7 @@ class EnsureSuperAdmin extends Command
         }
 
         $user->is_super_admin = true;
+        $user->internal_role ??= InternalAdminRole::Owner;
         $user->tenant_id = null;
         $user->email_verified_at ??= now();
 

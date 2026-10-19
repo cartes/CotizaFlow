@@ -4,7 +4,9 @@ use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\AdminSettingsController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\IntegrationController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
+use App\Http\Controllers\Admin\ReportsController as AdminReportsController;
 use App\Http\Controllers\Admin\TenantActivityController;
 use App\Http\Controllers\Admin\TenantController as AdminTenantController;
 use App\Http\Controllers\Admin\TrialRequestController as AdminTrialRequestController;
@@ -87,37 +89,45 @@ Route::middleware(['auth', 'verified', IsSuperAdmin::class])
     ->prefix('admin')
     ->name('admin.')
     ->group(function (): void {
-        Route::get('/', AdminDashboardController::class)->name('dashboard');
+        Route::get('/', AdminDashboardController::class)->middleware('admin.permission:dashboard.view')->name('dashboard');
 
-        Route::get('/tenants', [AdminTenantController::class, 'index'])->name('tenants.index');
-        Route::get('/tenants/create', [AdminTenantController::class, 'create'])->name('tenants.create');
-        Route::post('/tenants', [AdminTenantController::class, 'store'])->name('tenants.store');
-        Route::get('/tenants/{tenant}/edit', [AdminTenantController::class, 'edit'])->name('tenants.edit');
-        Route::put('/tenants/{tenant}', [AdminTenantController::class, 'update'])->name('tenants.update');
-        Route::put('/tenants/{tenant}/admin', [AdminTenantController::class, 'updateAdmin'])->name('tenants.update_admin');
-        Route::put('/tenants/{tenant}/suspend', [AdminTenantController::class, 'suspend'])->name('tenants.suspend');
-        Route::get('/tenants/{tenant}/activity', [TenantActivityController::class, 'show'])->name('tenants.activity');
+        Route::get('/tenants', [AdminTenantController::class, 'index'])->middleware('admin.permission:companies.manage')->name('tenants.index');
+        Route::get('/tenants/create', [AdminTenantController::class, 'create'])->middleware('admin.permission:companies.manage')->name('tenants.create');
+        Route::post('/tenants', [AdminTenantController::class, 'store'])->middleware('admin.permission:companies.manage')->name('tenants.store');
+        Route::get('/tenants/{tenant}/edit', [AdminTenantController::class, 'edit'])->middleware('admin.permission:companies.manage')->name('tenants.edit');
+        Route::put('/tenants/{tenant}', [AdminTenantController::class, 'update'])->middleware('admin.permission:companies.manage')->name('tenants.update');
+        Route::put('/tenants/{tenant}/admin', [AdminTenantController::class, 'updateAdmin'])->middleware('admin.permission:companies.manage')->name('tenants.update_admin');
+        Route::put('/tenants/{tenant}/suspend', [AdminTenantController::class, 'suspend'])->middleware('admin.permission:companies.manage')->name('tenants.suspend');
+        Route::get('/tenants/{tenant}/activity', [TenantActivityController::class, 'show'])->middleware('admin.permission:history.view')->name('tenants.activity');
 
-        Route::get('/trial-requests', [AdminTrialRequestController::class, 'index'])->name('trial-requests.index');
-        Route::post('/trial-requests/{trialRequest}/approve', [AdminTrialRequestController::class, 'approve'])->name('trial-requests.approve');
-        Route::post('/trial-requests/{trialRequest}/reject', [AdminTrialRequestController::class, 'reject'])->name('trial-requests.reject');
-        Route::delete('/trial-requests/{trialRequest}', [AdminTrialRequestController::class, 'destroy'])->name('trial-requests.destroy');
+        Route::get('/trial-requests', [AdminTrialRequestController::class, 'index'])->middleware('admin.permission:requests.manage')->name('trial-requests.index');
+        Route::post('/trial-requests/{trialRequest}/approve', [AdminTrialRequestController::class, 'approve'])->middleware('admin.permission:requests.manage')->name('trial-requests.approve');
+        Route::post('/trial-requests/{trialRequest}/reject', [AdminTrialRequestController::class, 'reject'])->middleware('admin.permission:requests.manage')->name('trial-requests.reject');
+        Route::delete('/trial-requests/{trialRequest}', [AdminTrialRequestController::class, 'destroy'])->middleware('admin.permission:requests.manage')->name('trial-requests.destroy');
 
-        Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
-        Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+        Route::get('/payments', [AdminPaymentController::class, 'index'])->middleware('admin.permission:payments.view')->name('payments.index');
+        Route::get('/integraciones', [IntegrationController::class, 'index'])->middleware('admin.permission:integrations.manage')->name('integrations.index');
+        Route::get('/audit-logs', [AuditLogController::class, 'index'])->middleware('admin.permission:history.view')->name('audit-logs.index');
+
+        Route::get('/reports/export', [AdminReportsController::class, 'export'])->middleware('admin.permission:reports.view')->name('reports.export');
+        Route::get('/reports', [AdminReportsController::class, 'index'])->middleware('admin.permission:reports.view')->name('reports.index');
+        Route::post('/reports/schedules', [AdminReportsController::class, 'storeSchedule'])->middleware('admin.permission:reports.schedule')->name('reports.schedules.store');
+        Route::put('/reports/schedules/{schedule}', [AdminReportsController::class, 'updateSchedule'])->middleware('admin.permission:reports.schedule')->name('reports.schedules.update');
+        Route::delete('/reports/schedules/{schedule}', [AdminReportsController::class, 'destroySchedule'])->middleware('admin.permission:reports.schedule')->name('reports.schedules.destroy');
 
         // Configuración Super Admin (Usuarios, Perfil, Configuraciones Internas)
-        Route::get('/configuracion', [AdminSettingsController::class, 'index'])->name('settings');
+        Route::get('/configuracion', [AdminSettingsController::class, 'index'])->middleware('admin.permission:settings.manage')->name('settings');
 
         // Rutas de Perfil y Configuraciones Internas
-        Route::get('/profile', [AdminSettingsController::class, 'index'])->name('profile');
-        Route::put('/profile', [AdminProfileController::class, 'updateProfile'])->name('profile.update');
-        Route::put('/profile/password', [AdminProfileController::class, 'updatePassword'])->name('profile.password');
-        Route::put('/profile/api-keys', [AdminProfileController::class, 'updateApiKeys'])->name('profile.api-keys');
-        Route::put('/profile/analytics', [AdminProfileController::class, 'updateAnalytics'])->name('profile.analytics');
+        Route::get('/profile', [AdminSettingsController::class, 'index'])->middleware('admin.permission:settings.manage')->name('profile');
+        Route::put('/profile', [AdminProfileController::class, 'updateProfile'])->middleware('admin.permission:settings.manage')->name('profile.update');
+        Route::put('/profile/password', [AdminProfileController::class, 'updatePassword'])->middleware('admin.permission:settings.manage')->name('profile.password');
+        Route::put('/profile/api-keys', [AdminProfileController::class, 'updateApiKeys'])->middleware('admin.permission:settings.manage')->name('profile.api-keys');
+        Route::put('/profile/analytics', [AdminProfileController::class, 'updateAnalytics'])->middleware('admin.permission:settings.manage')->name('profile.analytics');
 
         // Usuarios Globales
-        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
-        Route::put('/users/{user}/password', [AdminUserController::class, 'changePassword'])->name('users.change-password');
+        Route::get('/users', [AdminUserController::class, 'index'])->middleware('admin.permission:internal_roles.manage')->name('users.index');
+        Route::put('/users/{user}/password', [AdminUserController::class, 'changePassword'])->middleware('admin.permission:internal_roles.manage')->name('users.change-password');
+        Route::patch('/users/{user}/internal-role', [AdminUserController::class, 'updateInternalRole'])->middleware('admin.permission:internal_roles.manage')->name('users.internal-role');
     });
 require __DIR__.'/auth.php';

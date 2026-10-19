@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\IntegrationEvent;
 use App\Models\Payment;
 use App\Models\Setting;
 use App\Models\Tenant;
@@ -34,6 +35,7 @@ class MercadoPagoWebhookController extends Controller
 
             if (! $this->isValidSignature($request, $signature, $requestId, $secret ?: '')) {
                 Log::warning('MP webhook signature mismatch or missing', ['headers' => $request->headers->all()]);
+                IntegrationEvent::record('mercado_pago', 'error', 'Mercado Pago envió una notificación con firma inválida.');
 
                 return response('Unauthorized', 401);
             }
@@ -57,6 +59,7 @@ class MercadoPagoWebhookController extends Controller
 
             $client = new PaymentClient;
             $mpPayment = $client->get((int) $mpPaymentId);
+            IntegrationEvent::record('mercado_pago', 'ok', 'La API respondió correctamente a una notificación de pago.');
 
             $externalRef = $mpPayment->external_reference;
 
@@ -132,6 +135,7 @@ class MercadoPagoWebhookController extends Controller
             }
         } catch (\Throwable $e) {
             Log::error('MP webhook error', ['error' => $e->getMessage()]);
+            IntegrationEvent::record('mercado_pago', 'error', 'No se pudo consultar o procesar el pago de Mercado Pago.');
         }
 
         return response('OK', 200);

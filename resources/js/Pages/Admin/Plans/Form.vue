@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 
 const props = defineProps({
     plan: Object,
@@ -72,7 +72,7 @@ const submit = () => {
 <template>
     <Head :title="isEditing ? `Editar Plan: ${plan.name}` : 'Nuevo Plan'" />
 
-    <AdminLayout>
+    <CompanyLayout>
         <!-- Header -->
         <div class="mb-8 flex items-center gap-4">
             <Link
@@ -369,5 +369,5 @@ const submit = () => {
                 </div>
             </form>
         </div>
-    </AdminLayout>
+    </CompanyLayout>
 </template>

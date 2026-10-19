@@ -1,7 +1,7 @@
 <script setup>
 import { computed, watch } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import PasswordInput from '@/Components/PasswordInput.vue';
 import IdentificationInput from '@/Components/IdentificationInput.vue';
 import { useIdentification } from '@/composables/useIdentification';
@@ -54,7 +54,7 @@ const submit = () => {
 <template>
     <Head title="Nueva empresa" />
 
-    <AdminLayout>
+    <CompanyLayout>
         <!-- Header -->
         <div class="mb-8 flex items-center gap-4">
             <Link
@@ -263,5 +263,5 @@ const submit = () => {
                 </div>
             </form>
         </div>
-    </AdminLayout>
+    </CompanyLayout>
 </template>

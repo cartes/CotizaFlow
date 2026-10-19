@@ -2,7 +2,7 @@
 import { ref, computed, defineAsyncComponent } from 'vue';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 
 const TipTapEditor = defineAsyncComponent(() => import('@/Components/TipTapEditor.vue'));
 import MediaPickerModal from '@/Components/MediaPickerModal.vue';
@@ -112,7 +112,7 @@ const submit = () => {
 <template>
     <Head :title="isEditing ? `Editar Artículo: ${post.title}` : 'Nuevo Artículo de Blog'" />
 
-    <AdminLayout>
+    <CompanyLayout>
         <!-- Header -->
         <div class="mb-8 flex items-center gap-4">
             <Link
@@ -382,5 +382,5 @@ const submit = () => {
             @uploaded="onMediaUploaded"
             @deleted="onMediaDeleted"
         />
-    </AdminLayout>
+    </CompanyLayout>
 </template>

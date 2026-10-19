@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import PasswordInput from '@/Components/PasswordInput.vue';
 import IdentificationInput from '@/Components/IdentificationInput.vue';
 import { useIdentification } from '@/composables/useIdentification';
@@ -124,7 +124,7 @@ const lifecycleActionLabel = (action) => ({
 <template>
     <Head :title="`Editar empresa: ${tenant.name}`" />
 
-    <AdminLayout>
+    <CompanyLayout>
         <!-- Header -->
         <div class="mb-8 flex items-center justify-between">
             <div class="flex items-center gap-4">
@@ -363,5 +363,5 @@ const lifecycleActionLabel = (action) => ({
                 </section>
             </div>
         </div>
-    </AdminLayout>
+    </CompanyLayout>
 </template>

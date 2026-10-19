@@ -24,3 +24,7 @@ Schedule::call(static fn () => app(SendRenewalReminders::class)->handle())
 Schedule::call(static fn () => app(SendInactivityReminders::class)->handle())
     ->name('SendInactivityReminders')
     ->dailyAt('10:00');
+Schedule::command('admin:send-scheduled-reports')
+    ->name('SendScheduledAdminReports')
+    ->everyMinute()
+    ->withoutOverlapping();

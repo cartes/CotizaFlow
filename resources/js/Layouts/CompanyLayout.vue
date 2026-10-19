@@ -10,6 +10,19 @@ const tenant = computed(() => page.props.tenant);
 const permissions = computed(() => user.value?.permissions ?? []);
 const can = (permission) =>
     user.value?.is_super_admin || permissions.value.includes(permission);
+const internalAdminPermissions = {
+    owner: ['*'],
+    operations: ['dashboard.view', 'companies.manage', 'requests.manage', 'reports.view'],
+    finance: ['dashboard.view', 'payments.view', 'reports.view'],
+    support: ['dashboard.view', 'companies.manage', 'requests.manage', 'history.view'],
+    analyst: ['dashboard.view', 'reports.view', 'history.view'],
+};
+const canAdmin = (permission) => {
+    const role = user.value?.internal_role || 'owner';
+    const rolePermissions = internalAdminPermissions[role] || [];
+
+    return rolePermissions.includes('*') || rolePermissions.includes(permission);
+};
 const params = computed(() =>
     tenant.value ? { tenantBySlug: tenant.value.slug } : {},
 );
@@ -108,13 +121,71 @@ watch(
                         >Administración</Link
                     >
                     <Link
-                        v-if="user?.is_super_admin && !tenant"
+                        v-if="user?.is_super_admin && !tenant && canAdmin('companies.manage')"
+                        :href="route('admin.tenants.index')"
+                        :aria-current="
+                            route().current('admin.tenants.*') ? 'page' : undefined
+                        "
+                        :class="{
+                            'is-active': route().current('admin.tenants.*'),
+                        }"
+                        >Empresas</Link
+                    >
+                    <Link
+                        v-if="user?.is_super_admin && !tenant && canAdmin('internal_roles.manage')"
+                        :href="route('admin.users.index')"
+                        :class="{
+                            'is-active': route().current('admin.users.*'),
+                        }"
+                        >Usuarios</Link
+                    >
+                    <Link
+                        v-if="user?.is_super_admin && !tenant && canAdmin('payments.view')"
+                        :href="route('admin.payments.index')"
+                        :class="{
+                            'is-active': route().current('admin.payments.*'),
+                        }"
+                        >Pagos</Link
+                    >
+                    <Link
+                        v-if="user?.is_super_admin && !tenant && canAdmin('history.view')"
+                        :href="route('admin.audit-logs.index')"
+                        :class="{
+                            'is-active': route().current('admin.audit-logs.*'),
+                        }"
+                        >Historial</Link
+                    >
+                    <Link
+                        v-if="user?.is_super_admin && !tenant && canAdmin('integrations.manage')"
+                        :href="route('admin.integrations.index')"
+                        :class="{
+                            'is-active': route().current('admin.integrations.*'),
+                        }"
+                        >Integraciones</Link
+                    >
+                    <Link
+                        v-if="user?.is_super_admin && !tenant && canAdmin('requests.manage')"
+                        :href="route('admin.trial-requests.index')"
+                        :class="{
+                            'is-active': route().current('admin.trial-requests.*'),
+                        }"
+                        >Solicitudes</Link
+                    >
+                    <Link
+                        v-if="user?.is_super_admin && !tenant && canAdmin('reports.view')"
+                        :href="route('admin.reports.index')"
+                        :class="{
+                            'is-active': route().current('admin.reports.*'),
+                        }"
+                        >Reportes</Link
+                    >
+                    <Link
+                        v-if="user?.is_super_admin && !tenant && canAdmin('settings.manage')"
                         :href="route('admin.settings')"
                         :class="{
                             'is-active':
                                 route().current('admin.settings*') ||
-                                route().current('admin.profile*') ||
-                                route().current('admin.users*'),
+                                route().current('admin.profile*'),
                         }"
                         >Configuración</Link
                     >
@@ -122,7 +193,7 @@ watch(
                 <div class="cf-user-actions">
                     <Link
                         :href="
-                            user?.is_super_admin && !tenant
+                            user?.is_super_admin && !tenant && canAdmin('settings.manage')
                                 ? route('admin.settings', { tab: 'profile' })
                                 : route('profile.edit')
                         "

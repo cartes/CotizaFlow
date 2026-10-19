@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\ApiUsageLog;
+use App\Models\IntegrationEvent;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Spatie\Multitenancy\Models\Tenant;
@@ -35,6 +36,7 @@ class BoostrService
 
             if ($response->successful()) {
                 ApiUsageLog::record('boostr', Tenant::current()?->id);
+                IntegrationEvent::record('boostr', 'ok', 'La API respondió correctamente.');
                 $data = $response->json();
 
                 // Extrayendo la información premium del vehículo
@@ -49,11 +51,13 @@ class BoostrService
             }
 
             Log::warning('Boostr API returned status: '.$response->status()." for patente: {$patente}");
+            IntegrationEvent::record('boostr', 'error', 'Boostr respondió con HTTP '.$response->status().'.');
 
             return null;
 
         } catch (\Throwable $e) {
             Log::error('Error communicating with Boostr API: '.$e->getMessage());
+            IntegrationEvent::record('boostr', 'error', 'No se pudo establecer comunicación con Boostr.');
 
             return null;
         }

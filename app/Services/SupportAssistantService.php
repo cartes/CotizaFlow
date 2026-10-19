@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Ai\Agents\SupportAssistantAgent;
+use App\Models\IntegrationEvent;
 use App\Support\SupportFaqCatalog;
 use Illuminate\Support\Facades\Log;
 
@@ -37,6 +38,8 @@ class SupportAssistantService
                 provider: $provider,
             );
 
+            IntegrationEvent::record('ai', 'ok', 'El proveedor de IA respondió correctamente.');
+
             $answer = trim((string) ($response['answer'] ?? ''));
             $matchedId = trim((string) ($response['matched_faq_id'] ?? ''));
 
@@ -53,6 +56,7 @@ class SupportAssistantService
             ];
         } catch (\Throwable $e) {
             Log::error('Support assistant error: '.$e->getMessage());
+            IntegrationEvent::record('ai', 'error', 'No se pudo completar la solicitud al proveedor de IA.');
 
             return $this->fallback();
         }

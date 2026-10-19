@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -80,7 +80,7 @@ function copyUrl(url) {
 <template>
     <Head title="Banco de Imágenes" />
 
-    <AdminLayout>
+    <CompanyLayout>
         <div class="mb-8 flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Banco de Imágenes</h1>
@@ -195,5 +195,5 @@ function copyUrl(url) {
                 </div>
             </div>
         </div>
-    </AdminLayout>
+    </CompanyLayout>
 </template>

@@ -1,7 +1,7 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 
 const props = defineProps({
     plans: Array,
@@ -27,7 +27,7 @@ const deletePlan = (plan) => {
 <template>
     <Head title="Planes de Suscripción" />
 
-    <AdminLayout>
+    <CompanyLayout>
         <div class="sm:flex sm:items-center sm:justify-between mb-8">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Planes de Suscripción</h1>
@@ -136,5 +136,5 @@ const deletePlan = (plan) => {
                 </div>
             </div>
         </div>
-    </AdminLayout>
+    </CompanyLayout>
 </template>

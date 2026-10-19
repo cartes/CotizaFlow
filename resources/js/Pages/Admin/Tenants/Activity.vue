@@ -1,7 +1,7 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import { ref, computed, defineAsyncComponent } from 'vue';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 
 const VueApexCharts = defineAsyncComponent(() => import('vue3-apexcharts'));
 
@@ -140,7 +140,7 @@ const statusBadge = {
 <template>
     <Head :title="`Actividad — ${tenant.name}`" />
 
-    <AdminLayout>
+    <CompanyLayout>
         <!-- Encabezado -->
         <div class="mb-6">
             <div class="flex items-center gap-2 text-sm text-slate-500 mb-2">
@@ -523,7 +523,7 @@ const statusBadge = {
                 </table>
             </div>
         </div>
-    </AdminLayout>
+    </CompanyLayout>
 </template>
 
 <style scoped>

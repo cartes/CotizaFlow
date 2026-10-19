@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\InternalAdminRole;
 use App\Models\Branch;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -51,6 +52,7 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'is_super_admin' => true,
+            'internal_role' => InternalAdminRole::Owner,
             'tenant_id' => null,
         ]);
     }

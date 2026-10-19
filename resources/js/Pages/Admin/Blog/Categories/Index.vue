@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 
 const props = defineProps({
     categories: Array,
@@ -19,7 +19,7 @@ function destroy(category) {
 <template>
     <Head title="Categorías del Blog" />
 
-    <AdminLayout>
+    <CompanyLayout>
         <div class="mb-8 flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Categorías</h1>
@@ -102,5 +102,5 @@ function destroy(category) {
                 </div>
             </div>
         </div>
-    </AdminLayout>
+    </CompanyLayout>
 </template>

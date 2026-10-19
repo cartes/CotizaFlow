@@ -1,7 +1,7 @@
 <script setup>
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 import PasswordInput from '@/Components/PasswordInput.vue';
 
 const props = defineProps({
@@ -101,7 +101,7 @@ const formatDate = (date) => {
 <template>
     <Head title="Solicitudes de prueba · Admin" />
 
-    <AdminLayout>
+    <CompanyLayout>
         <div class="mb-6 flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Solicitudes de Prueba Gratuita</h1>
@@ -347,5 +347,5 @@ const formatDate = (date) => {
                 <p class="text-sm text-slate-400 font-medium">No hay solicitudes {{ statusLabel[current_status]?.toLowerCase() }}s</p>
             </div>
         </div>
-    </AdminLayout>
+    </CompanyLayout>
 </template>

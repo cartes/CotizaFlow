@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
+import CompanyLayout from '@/Layouts/CompanyLayout.vue';
 
 const props = defineProps({
     logs: Object,
@@ -30,7 +30,7 @@ const actionBadgeClass = (action) => {
 <template>
     <Head title="Auditoría" />
 
-    <AdminLayout>
+    <CompanyLayout>
         <div class="mb-8">
             <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Registro de Auditoría</h1>
             <p class="mt-1 text-sm text-slate-500">Historial de acciones realizadas en el sistema.</p>
@@ -121,5 +121,5 @@ const actionBadgeClass = (action) => {
                 </template>
             </nav>
         </div>
-    </AdminLayout>
+    </CompanyLayout>
 </template>
