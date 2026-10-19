@@ -3,6 +3,10 @@
 use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\AdminSettingsController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
+use App\Http\Controllers\Admin\TenantActivityController;
+use App\Http\Controllers\Admin\TenantController as AdminTenantController;
+use App\Http\Controllers\Admin\TrialRequestController as AdminTrialRequestController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CompanyDashboardController;
@@ -83,6 +87,22 @@ Route::middleware(['auth', 'verified', IsSuperAdmin::class])
     ->name('admin.')
     ->group(function (): void {
         Route::get('/', AdminDashboardController::class)->name('dashboard');
+
+        Route::get('/tenants', [AdminTenantController::class, 'index'])->name('tenants.index');
+        Route::get('/tenants/create', [AdminTenantController::class, 'create'])->name('tenants.create');
+        Route::post('/tenants', [AdminTenantController::class, 'store'])->name('tenants.store');
+        Route::get('/tenants/{tenant}/edit', [AdminTenantController::class, 'edit'])->name('tenants.edit');
+        Route::put('/tenants/{tenant}', [AdminTenantController::class, 'update'])->name('tenants.update');
+        Route::put('/tenants/{tenant}/admin', [AdminTenantController::class, 'updateAdmin'])->name('tenants.update_admin');
+        Route::put('/tenants/{tenant}/suspend', [AdminTenantController::class, 'suspend'])->name('tenants.suspend');
+        Route::get('/tenants/{tenant}/activity', [TenantActivityController::class, 'show'])->name('tenants.activity');
+
+        Route::get('/trial-requests', [AdminTrialRequestController::class, 'index'])->name('trial-requests.index');
+        Route::post('/trial-requests/{trialRequest}/approve', [AdminTrialRequestController::class, 'approve'])->name('trial-requests.approve');
+        Route::post('/trial-requests/{trialRequest}/reject', [AdminTrialRequestController::class, 'reject'])->name('trial-requests.reject');
+        Route::delete('/trial-requests/{trialRequest}', [AdminTrialRequestController::class, 'destroy'])->name('trial-requests.destroy');
+
+        Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
 
         // Configuración Super Admin (Usuarios, Perfil, Configuraciones Internas)
         Route::get('/configuracion', [AdminSettingsController::class, 'index'])->name('settings');

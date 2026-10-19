@@ -8,6 +8,7 @@ use App\Models\ApiUsageLog;
 use App\Models\EmailTracking;
 use App\Models\LoginLog;
 use App\Models\Payment;
+use App\Models\Plan;
 use App\Models\Tenant;
 use App\Models\TrialRequest;
 use App\Models\User;
@@ -18,6 +19,138 @@ use Illuminate\Support\Facades\DB;
 
 class AdminDashboardService
 {
+    /**
+     * Build the current executive overview for the super-admin dashboard.
+     *
+     * @return array<string, mixed>
+     */
+    public function getExecutiveData(Carbon $now): array
+    {
+        $thirtyDaysAgo = $now->copy()->subDays(30);
+        $sevenDaysFromNow = $now->copy()->addDays(7);
+        $resolvedTrialRequests = TrialRequest::query()
+            ->whereIn('status', ['approved', 'rejected'])
+            ->where('created_at', '>=', $thirtyDaysAgo);
+        $resolvedTrialRequestCount = (clone $resolvedTrialRequests)->count();
+        $approvedTrialRequestCount = (clone $resolvedTrialRequests)->where('status', 'approved')->count();
+
+        $companies = Tenant::query();
+        $pendingTrialRequests = TrialRequest::query()->where('status', 'pending')->count();
+        $expiringCompanies = Tenant::query()
+            ->where('is_active', true)
+            ->where('status', 'active')
+            ->whereBetween('subscription_ends_at', [$now, $sevenDaysFromNow])
+            ->count();
+        $expiredActiveCompanies = Tenant::query()
+            ->where('is_active', true)
+            ->where('status', 'active')
+            ->whereNotNull('subscription_ends_at')
+            ->where('subscription_ends_at', '<', $now)
+            ->count();
+        $pendingPayments = Payment::query()->where('status', Payment::STATUS_PENDING)->count();
+        $recentRejectedPayments = Payment::query()
+            ->where('status', Payment::STATUS_REJECTED)
+            ->where('created_at', '>=', $thirtyDaysAgo)
+            ->count();
+
+        return [
+            'stats' => [
+                'companies_total' => (clone $companies)->count(),
+                'companies_active' => (clone $companies)->where('is_active', true)->where('status', 'active')->count(),
+                'companies_new_30d' => (clone $companies)->where('created_at', '>=', $thirtyDaysAgo)->count(),
+                'trial_requests_resolved_30d' => $resolvedTrialRequestCount,
+                'trial_requests_approved_30d' => $approvedTrialRequestCount,
+                'conversion_rate_30d' => $resolvedTrialRequestCount > 0
+                    ? round(($approvedTrialRequestCount / $resolvedTrialRequestCount) * 100, 1)
+                    : 0.0,
+                'revenue_30d' => (int) Payment::query()
+                    ->where('status', Payment::STATUS_APPROVED)
+                    ->where('paid_at', '>=', $thirtyDaysAgo)
+                    ->sum('amount'),
+                'revenue_month_to_date' => (int) Payment::query()
+                    ->where('status', Payment::STATUS_APPROVED)
+                    ->whereBetween('paid_at', [$now->copy()->startOfMonth(), $now])
+                    ->sum('amount'),
+            ],
+            'alerts' => [
+                'pending_trial_requests' => $pendingTrialRequests,
+                'expiring_companies' => $expiringCompanies,
+                'expired_active_companies' => $expiredActiveCompanies,
+                'pending_payments' => $pendingPayments,
+                'rejected_payments_30d' => $recentRejectedPayments,
+            ],
+            'monthly_companies' => $this->getExecutiveMonthlyCompanies($now),
+            'recent_companies' => Tenant::query()
+                ->with('plan:id,name')
+                ->latest('created_at')
+                ->limit(6)
+                ->get(['id', 'name', 'slug', 'plan_id', 'plan', 'status', 'is_active', 'created_at'])
+                ->map(static function (Tenant $company): array {
+                    $plan = $company->getRelation('plan');
+
+                    return [
+                        'id' => $company->id,
+                        'name' => $company->name,
+                        'slug' => $company->slug,
+                        'plan' => $plan instanceof Plan ? $plan->name : $company->currentPlan()->label(),
+                        'status' => $company->status,
+                        'is_active' => (bool) $company->is_active,
+                        'created_at' => $company->created_at?->toIso8601String(),
+                    ];
+                })
+                ->values(),
+            'recent_payments' => Payment::query()
+                ->with(['tenant:id,name', 'plan:id,name'])
+                ->latest('created_at')
+                ->limit(6)
+                ->get(['id', 'tenant_id', 'plan_id', 'amount', 'currency', 'status', 'paid_at', 'created_at'])
+                ->map(static fn (Payment $payment): array => [
+                    'id' => $payment->id,
+                    'company' => $payment->tenant?->name,
+                    'plan' => $payment->plan?->name,
+                    'amount' => $payment->amount,
+                    'currency' => $payment->currency,
+                    'status' => $payment->status,
+                    'date' => ($payment->paid_at ?? $payment->created_at)?->toIso8601String(),
+                ])
+                ->values(),
+            'pending_trial_requests' => TrialRequest::query()
+                ->where('status', 'pending')
+                ->latest('created_at')
+                ->limit(5)
+                ->get(['id', 'business_name', 'name', 'email', 'created_at'])
+                ->map(static fn (TrialRequest $request): array => [
+                    'id' => $request->id,
+                    'business_name' => $request->business_name,
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'created_at' => $request->created_at?->toIso8601String(),
+                ])
+                ->values(),
+        ];
+    }
+
+    /**
+     * @return Collection<int, array{month: string, total: int}>
+     */
+    private function getExecutiveMonthlyCompanies(Carbon $now): Collection
+    {
+        $firstMonth = $now->copy()->startOfMonth()->subMonths(5);
+        $monthExpression = $this->monthGroupingExpression('created_at');
+        $companyCounts = Tenant::query()
+            ->where('created_at', '>=', $firstMonth)
+            ->select(DB::raw("{$monthExpression} as month"), DB::raw('count(*) as total'))
+            ->groupBy('month')
+            ->pluck('total', 'month');
+
+        return collect(range(0, 5))
+            ->map(static function (int $offset) use ($firstMonth, $companyCounts): array {
+                $month = $firstMonth->copy()->addMonths($offset)->format('Y-m');
+
+                return ['month' => $month, 'total' => (int) ($companyCounts[$month] ?? 0)];
+            });
+    }
+
     /**
      * Estadísticas generales del dashboard admin.
      *

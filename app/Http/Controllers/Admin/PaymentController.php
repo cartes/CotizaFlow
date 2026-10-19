@@ -46,9 +46,11 @@ class PaymentController extends Controller
             ]);
 
         // Resumen mensual últimos 6 meses (solo aprobados)
-        $monthExpr = DB::connection()->getDriverName() === 'pgsql'
-            ? "TO_CHAR(paid_at, 'YYYY-MM')"
-            : "DATE_FORMAT(paid_at, '%Y-%m')";
+        $monthExpr = match (DB::connection()->getDriverName()) {
+            'pgsql' => "TO_CHAR(paid_at, 'YYYY-MM')",
+            'sqlite' => "strftime('%Y-%m', paid_at)",
+            default => "DATE_FORMAT(paid_at, '%Y-%m')",
+        };
 
         $monthlySummary = Payment::query()
             ->where('status', 'approved')

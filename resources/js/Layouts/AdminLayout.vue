@@ -12,15 +12,8 @@ const flash = computed(() => page.props.flash ?? {});
 
 const userMenuOpen = ref(false);
 const showingNavigationDropdown = ref(false);
-const blogMenuOpen = ref(false);
-const blogMenuRef = ref(null);
 const userMenuRef = ref(null);
 
-const handleClickOutsideBlog = (event) => {
-    if (blogMenuRef.value && !blogMenuRef.value.contains(event.target)) {
-        blogMenuOpen.value = false;
-    }
-};
 const toast = ref({ message: '', type: 'success' });
 
 const handleClickOutside = (event) => {
@@ -83,11 +76,9 @@ watch(
 
 onMounted(() => {
     document.addEventListener('click', handleClickOutside);
-    document.addEventListener('click', handleClickOutsideBlog);
 });
 onUnmounted(() => {
     document.removeEventListener('click', handleClickOutside);
-    document.removeEventListener('click', handleClickOutsideBlog);
 });
 </script>
 
@@ -110,119 +101,28 @@ onUnmounted(() => {
                 :href="route('admin.dashboard')"
                 :class="route().current('admin.dashboard') ? 'border-amber-500 text-white' : 'border-transparent text-slate-300 hover:border-slate-300 hover:text-white'"
                 class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-              >
-                Panel
-              </Link>
+              >Panel</Link>
               <Link
                 :href="route('admin.tenants.index')"
                 :class="route().current('admin.tenants.*') ? 'border-amber-500 text-white' : 'border-transparent text-slate-300 hover:border-slate-300 hover:text-white'"
                 class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-              >
-                Empresas
-              </Link>
-              <Link
-                :href="route('admin.analytics.visits')"
-                :class="route().current('admin.analytics.*') ? 'border-amber-500 text-white' : 'border-transparent text-slate-300 hover:border-slate-300 hover:text-white'"
-                class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-              >
-                Visitas
-              </Link>
+              >Empresas</Link>
               <Link
                 :href="route('admin.users.index')"
                 :class="route().current('admin.users.*') ? 'border-amber-500 text-white' : 'border-transparent text-slate-300 hover:border-slate-300 hover:text-white'"
                 class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-              >
-                Usuarios
-              </Link>
-              <Link
-                :href="route('admin.plans.index')"
-                :class="route().current('admin.plans.*') ? 'border-amber-500 text-white' : 'border-transparent text-slate-300 hover:border-slate-300 hover:text-white'"
-                class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-              >
-                Planes
-              </Link>
+              >Usuarios</Link>
               <Link
                 :href="route('admin.payments.index')"
                 :class="route().current('admin.payments.*') ? 'border-amber-500 text-white' : 'border-transparent text-slate-300 hover:border-slate-300 hover:text-white'"
                 class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-              >
-                Pagos
-              </Link>
-              <Link
-                :href="route('admin.audit.index')"
-                :class="route().current('admin.audit.*') ? 'border-amber-500 text-white' : 'border-transparent text-slate-300 hover:border-slate-300 hover:text-white'"
-                class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-              >
-                Auditoría
-              </Link>
+              >Pagos</Link>
               <Link
                 :href="route('admin.trial-requests.index')"
                 :class="route().current('admin.trial-requests.*') ? 'border-amber-500 text-white' : 'border-transparent text-slate-300 hover:border-slate-300 hover:text-white'"
                 class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-              >
-                Pruebas
-              </Link>
-              <Link
-                :href="route('admin.landing-seo.index')"
-                :class="route().current('admin.landing-seo.*') ? 'border-amber-500 text-white' : 'border-transparent text-slate-300 hover:border-slate-300 hover:text-white'"
-                class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-              >
-                SEO
-              </Link>
-              <!-- Blog dropdown -->
-              <div class="relative" ref="blogMenuRef">
-                <button
-                  type="button"
-                  @click="blogMenuOpen = !blogMenuOpen"
-                  :class="route().current('admin.blog.*') || route().current('admin.blog-categories.*') || route().current('admin.media-library.*') ? 'border-amber-500 text-white' : 'border-transparent text-slate-300 hover:border-slate-300 hover:text-white'"
-                  class="inline-flex items-center gap-1 px-1 pt-1 border-b-2 text-sm font-medium transition-colors h-16"
-                >
-                  Blog
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                <div
-                  v-if="blogMenuOpen"
-                  class="absolute top-full left-0 mt-1 w-52 rounded-xl bg-white shadow-lg ring-1 ring-black/5 z-50 overflow-hidden py-1"
-                >
-                  <Link
-                    :href="route('admin.blog.index')"
-                    :class="route().current('admin.blog.*') ? 'bg-orange-50 text-orange-600' : 'text-slate-700 hover:bg-slate-50'"
-                    class="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors"
-                    @click="blogMenuOpen = false"
-                  >
-                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                    </svg>
-                    Artículos
-                  </Link>
-                  <Link
-                    :href="route('admin.blog-categories.index')"
-                    :class="route().current('admin.blog-categories.*') ? 'bg-orange-50 text-orange-600' : 'text-slate-700 hover:bg-slate-50'"
-                    class="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors"
-                    @click="blogMenuOpen = false"
-                  >
-                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" />
-                    </svg>
-                    Categorías
-                  </Link>
-                  <div class="border-t border-slate-100 my-1"></div>
-                  <Link
-                    :href="route('admin.media-library.index')"
-                    :class="route().current('admin.media-library.*') ? 'bg-orange-50 text-orange-600' : 'text-slate-700 hover:bg-slate-50'"
-                    class="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors"
-                    @click="blogMenuOpen = false"
-                  >
-                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                    </svg>
-                    Banco de Imágenes
-                  </Link>
-                </div>
-              </div>
+              >Solicitudes</Link>
+            </div>
             </div>
           </div>
           <div class="hidden sm:ml-6 sm:flex sm:items-center">
@@ -310,100 +210,32 @@ onUnmounted(() => {
             :class="route().current('admin.dashboard') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
             class="block rounded-md px-3 py-2 text-base font-medium transition-colors"
             @click="showingNavigationDropdown = false"
-          >
-            Panel
-          </Link>
+          >Panel</Link>
           <Link
             :href="route('admin.tenants.index')"
             :class="route().current('admin.tenants.*') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
             class="block rounded-md px-3 py-2 text-base font-medium transition-colors"
             @click="showingNavigationDropdown = false"
-          >
-            Empresas
-          </Link>
-          <Link
-            :href="route('admin.analytics.visits')"
-            :class="route().current('admin.analytics.*') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
-            class="block rounded-md px-3 py-2 text-base font-medium transition-colors"
-            @click="showingNavigationDropdown = false"
-          >
-            Visitas
-          </Link>
+          >Empresas</Link>
           <Link
             :href="route('admin.users.index')"
             :class="route().current('admin.users.*') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
             class="block rounded-md px-3 py-2 text-base font-medium transition-colors"
             @click="showingNavigationDropdown = false"
-          >
-            Usuarios
-          </Link>
-          <Link
-            :href="route('admin.plans.index')"
-            :class="route().current('admin.plans.*') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
-            class="block rounded-md px-3 py-2 text-base font-medium transition-colors"
-            @click="showingNavigationDropdown = false"
-          >
-            Planes
-          </Link>
+          >Usuarios</Link>
           <Link
             :href="route('admin.payments.index')"
             :class="route().current('admin.payments.*') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
             class="block rounded-md px-3 py-2 text-base font-medium transition-colors"
             @click="showingNavigationDropdown = false"
-          >
-            Pagos
-          </Link>
-          <Link
-            :href="route('admin.audit.index')"
-            :class="route().current('admin.audit.*') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
-            class="block rounded-md px-3 py-2 text-base font-medium transition-colors"
-            @click="showingNavigationDropdown = false"
-          >
-            Auditoría
-          </Link>
+          >Pagos</Link>
           <Link
             :href="route('admin.trial-requests.index')"
             :class="route().current('admin.trial-requests.*') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
             class="block rounded-md px-3 py-2 text-base font-medium transition-colors"
             @click="showingNavigationDropdown = false"
-          >
-            Pruebas
-          </Link>
-          <Link
-            :href="route('admin.landing-seo.index')"
-            :class="route().current('admin.landing-seo.*') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
-            class="block rounded-md px-3 py-2 text-base font-medium transition-colors"
-            @click="showingNavigationDropdown = false"
-          >
-            SEO
-          </Link>
-          <div class="px-3 py-1.5">
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Blog</p>
-          </div>
-          <Link
-            :href="route('admin.blog.index')"
-            :class="route().current('admin.blog.*') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
-            class="block rounded-md px-5 py-2 text-sm font-medium transition-colors"
-            @click="showingNavigationDropdown = false"
-          >
-            Artículos
-          </Link>
-          <Link
-            :href="route('admin.blog-categories.index')"
-            :class="route().current('admin.blog-categories.*') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
-            class="block rounded-md px-5 py-2 text-sm font-medium transition-colors"
-            @click="showingNavigationDropdown = false"
-          >
-            Categorías
-          </Link>
-          <Link
-            :href="route('admin.media-library.index')"
-            :class="route().current('admin.media-library.*') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
-            class="block rounded-md px-5 py-2 text-sm font-medium transition-colors"
-            @click="showingNavigationDropdown = false"
-          >
-            Banco de Imágenes
-          </Link>
+          >Solicitudes</Link>
+        </div>
         </div>
 
         <!-- Responsive Settings Options -->
