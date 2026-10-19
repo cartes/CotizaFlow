@@ -18,7 +18,7 @@ const plans = [
 ];
 </script>
 <template>
-    <div class="min-h-screen bg-slate-50">
+    <div class="flex min-h-screen flex-col bg-slate-50">
         <Head title="Planes" /><PublicNav />
         <main class="mx-auto max-w-6xl px-5 py-16">
             <h1 class="text-4xl font-bold">

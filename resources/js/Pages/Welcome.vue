@@ -98,7 +98,7 @@ const features = [
 ];
 </script>
 <template>
-    <div class="min-h-screen bg-slate-50">
+    <div class="flex min-h-screen flex-col bg-gradient-to-b from-orange-50/60 via-slate-50 to-slate-50">
         <SeoHead :seo="seo" fallback-title="CotizaFlow" /><PublicNav />
         <main>
             <section
@@ -214,7 +214,7 @@ const features = [
                 <div>
                     <p class="text-sm font-bold uppercase tracking-widest text-orange-600">Seguimiento</p>
                     <h2 class="mt-3 text-3xl font-semibold leading-tight tracking-tight text-slate-900 sm:text-4xl">
-                        Cada cotización merece <span class="text-orange-500">seguimiento.</span>
+                        Cada cotización merece <span class="rounded-xl bg-orange-100 px-2.5 py-0.5 text-orange-600 [box-decoration-break:clone]">seguimiento.</span>
                     </h2>
                     <p class="mt-5 text-lg leading-relaxed text-slate-600">
                         ¿Enviaste una cotización y todavía no tienes noticias? CotizaFlow te ayuda a detectar las propuestas pendientes y te avisa cuándo conviene retomar el contacto. Así puedes dar seguimiento a tiempo y mantener viva cada oportunidad.
@@ -300,7 +300,7 @@ const features = [
                 <div class="lg:order-2">
                     <p class="text-sm font-bold uppercase tracking-widest text-orange-600">Clientes</p>
                     <h2 class="mt-3 text-3xl font-semibold leading-tight tracking-tight text-slate-900 sm:text-4xl">
-                        Revisa lo cotizado y lo <span class="text-orange-500">vendido por cliente.</span>
+                        Revisa lo cotizado y lo <span class="rounded-xl bg-orange-100 px-2.5 py-0.5 text-orange-600 [box-decoration-break:clone]">vendido por cliente.</span>
                     </h2>
                     <p class="mt-5 text-lg leading-relaxed text-slate-600">
                         Consulta las cotizaciones enviadas y las ventas asociadas a cada cliente. Ten una visión clara de lo que ya se concretó y de las oportunidades que siguen abiertas, para entender mejor cada relación comercial.

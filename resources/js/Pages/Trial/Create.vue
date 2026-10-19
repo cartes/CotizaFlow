@@ -17,7 +17,7 @@ const form = useForm({
 });
 </script>
 <template>
-    <div class="min-h-screen bg-slate-50">
+    <div class="flex min-h-screen flex-col bg-slate-50">
         <Head title="Solicitar acceso" /><PublicNav />
         <main class="mx-auto max-w-2xl px-5 py-12">
             <h1 class="text-3xl font-bold">Conversemos sobre tu empresa</h1>

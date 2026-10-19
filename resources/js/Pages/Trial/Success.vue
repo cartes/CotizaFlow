@@ -4,7 +4,7 @@ import PublicNav from '@/Components/PublicNav.vue';
 import PublicFooter from '@/Components/PublicFooter.vue';
 </script>
 <template>
-    <div class="min-h-screen bg-slate-50">
+    <div class="flex min-h-screen flex-col bg-slate-50">
         <Head title="Solicitud recibida" /><PublicNav />
         <main class="mx-auto max-w-2xl px-5 py-20">
             <h1 class="text-3xl font-bold">Recibimos tu solicitud</h1>
