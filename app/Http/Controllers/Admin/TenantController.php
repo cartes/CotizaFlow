@@ -188,6 +188,19 @@ class TenantController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'slug', 'max_users', 'is_active']);
 
+        $lifecycleHistory = AuditLog::query()
+            ->with('user:id,name,email')
+            ->where('model_type', Tenant::class)
+            ->where('model_id', $tenant->id)
+            ->whereIn('action', [
+                'company.lifecycle.updated',
+                'company.suspended',
+                'company.reactivated',
+            ])
+            ->latest('created_at')
+            ->limit(30)
+            ->get(['id', 'user_id', 'action', 'changes', 'description', 'created_at']);
+
         $planId = $tenant->plan_id ?? $plans->firstWhere('slug', $tenant->currentPlan()->value)?->id;
 
         return Inertia::render('Admin/Tenants/Edit', [
@@ -224,12 +237,15 @@ class TenantController extends Controller
                 ])
                 ->values()
                 ->all(),
+            'lifecycle_history' => $lifecycleHistory,
         ]);
     }
 
     public function update(UpdateTenantRequest $request, Tenant $tenant): RedirectResponse
     {
         $validated = $request->validated();
+        $original = $tenant->only(['name', 'plan_id', 'status', 'subscription_ends_at']);
+        $original['subscription_ends_at'] = $tenant->subscription_ends_at?->toDateString();
         $plan = Plan::query()->findOrFail($validated['plan_id']);
         $resolvedPlan = TenantPlan::fromPlanModel($plan)?->value ?? $plan->slug;
         $country = Country::tryFrom((string) ($validated['country'] ?? 'CL')) ?? Country::Chile;
@@ -237,7 +253,7 @@ class TenantController extends Controller
             ? $country->formatIdentification($validated['rut_taller'])
             : null;
 
-        $tenant->update([
+        $tenant->fill([
             'name' => $validated['name'],
             'country' => $country,
             'rut_taller' => $rutTaller,
@@ -256,6 +272,35 @@ class TenantController extends Controller
                 ? now()->parse($validated['subscription_ends_at'])
                 : null,
         ]);
+        $tenant->save();
+
+        $changes = [];
+        $currentValues = [
+            'name' => $tenant->name,
+            'plan_id' => $tenant->plan_id,
+            'status' => $tenant->status,
+            'subscription_ends_at' => $tenant->subscription_ends_at?->toDateString(),
+        ];
+
+        foreach ($currentValues as $attribute => $newValue) {
+            if ((string) ($original[$attribute] ?? '') !== (string) ($newValue ?? '')) {
+                $changes[$attribute] = [
+                    'old' => $original[$attribute],
+                    'new' => $newValue,
+                ];
+            }
+        }
+
+        $reason = trim((string) ($validated['change_reason'] ?? ''));
+        if ($changes !== [] && $reason !== '') {
+            $changes['reason'] = ['old' => null, 'new' => $reason];
+            AuditLog::record(
+                'company.lifecycle.updated',
+                "Datos del ciclo de vida de '{$tenant->name}' actualizados. Motivo: {$reason}",
+                $tenant,
+                $changes
+            );
+        }
 
         return back()->with('success', 'Empresa actualizada correctamente.');
     }
@@ -296,11 +341,30 @@ class TenantController extends Controller
         return back()->with('success', 'Administrador guardado correctamente.');
     }
 
-    public function suspend(Tenant $tenant): RedirectResponse
+    public function suspend(Request $request, Tenant $tenant): RedirectResponse
     {
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'min:5', 'max:500'],
+        ]);
         $newStatus = $tenant->status === 'suspended' ? 'active' : 'suspended';
+        $previousStatus = $tenant->status;
 
-        $tenant->update(['status' => $newStatus]);
+        $tenant->update([
+            'status' => $newStatus,
+            'is_active' => $newStatus === 'active',
+        ]);
+
+        $reason = trim($validated['reason']);
+        $statusLabel = $newStatus === 'suspended' ? 'suspendida' : 'reactivada';
+        AuditLog::record(
+            $newStatus === 'suspended' ? 'company.suspended' : 'company.reactivated',
+            "Empresa '{$tenant->name}' {$statusLabel}. Motivo: {$reason}",
+            $tenant,
+            [
+                'status' => ['old' => $previousStatus, 'new' => $newStatus],
+                'reason' => ['old' => null, 'new' => $reason],
+            ]
+        );
 
         return back()->with('success', "Estado de la empresa actualizado a {$newStatus}.");
     }

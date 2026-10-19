@@ -123,8 +123,7 @@ createInertiaApp({
                 './Pages/Trial/*.vue',
                 './Pages/Profile/**/*.vue',
                 './Pages/Auth/*.vue',
-                './Pages/Admin/Dashboard.vue',
-                './Pages/Admin/Settings.vue',
+                './Pages/Admin/**/*.vue',
             ]),
         ),
     setup({ el, App, props, plugin }) {

@@ -9,6 +9,7 @@ import { useIdentification } from '@/composables/useIdentification';
 const props = defineProps({
     tenant: Object,
     plans: Array,
+    lifecycle_history: { type: Array, default: () => [] },
 });
 
 const {
@@ -57,6 +58,7 @@ const tenantForm = useForm({
     comuna: props.tenant.comuna || '',
     whatsapp_number: props.tenant.whatsapp_number || '',
     subscription_ends_at: props.tenant.subscription_ends_at || '',
+    change_reason: '',
 });
 
 const countryConfig = computed(() => getCountryConfig(tenantForm.country));
@@ -110,6 +112,13 @@ const selectedTrialPeriod = computed(() => {
 const setTrialPeriod = (months) => {
     tenantForm.subscription_ends_at = trialEndDateForMonths(months);
 };
+
+const formatHistoryDate = (value) => value ? new Date(value).toLocaleString('es-CL') : '—';
+const lifecycleActionLabel = (action) => ({
+    'company.lifecycle.updated': 'Ciclo actualizado',
+    'company.suspended': 'Empresa suspendida',
+    'company.reactivated': 'Empresa reactivada',
+}[action] ?? action);
 </script>
 
 <template>
@@ -169,6 +178,12 @@ const setTrialPeriod = (months) => {
                                 </select>
                                 <div v-if="tenantForm.errors.country" class="mt-1 text-sm text-red-600">{{ tenantForm.errors.country }}</div>
                             </div>
+                        </div>
+
+                        <div>
+                            <label for="change_reason" class="block text-sm font-medium text-gray-700">Motivo del cambio de ciclo</label>
+                            <textarea id="change_reason" v-model="tenantForm.change_reason" rows="3" minlength="5" maxlength="500" class="mt-2 block w-full rounded-md border-gray-200 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" placeholder="Se exige si cambias plan, estado o vencimiento" />
+                            <div v-if="tenantForm.errors.change_reason" class="mt-1 text-sm text-red-600">{{ tenantForm.errors.change_reason }}</div>
                         </div>
 
                         <div>
@@ -266,6 +281,12 @@ const setTrialPeriod = (months) => {
                             </div>
                         </div>
 
+                        <div>
+                            <label for="change_reason" class="block text-sm font-medium text-gray-700">Motivo del cambio</label>
+                            <textarea id="change_reason" v-model="tenantForm.change_reason" rows="3" required minlength="5" maxlength="500" class="mt-2 block w-full rounded-md border-gray-200 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" placeholder="Describe por qué se cambia el plan, estado o vencimiento" />
+                            <div v-if="tenantForm.errors.change_reason" class="mt-1 text-sm text-red-600">{{ tenantForm.errors.change_reason }}</div>
+                        </div>
+
                         <div class="pt-4 border-t border-gray-100 flex justify-end">
                             <button type="submit" :disabled="tenantForm.processing" class="inline-flex justify-center rounded-md border border-transparent bg-orange-500 py-2 px-4 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 transition-colors">
                                 Guardar Cambios
@@ -316,6 +337,30 @@ const setTrialPeriod = (months) => {
                         </div>
                     </form>
                 </div>
+
+                <section class="mt-10 border-t border-gray-200 pt-8">
+                    <div class="mb-5 flex items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-lg font-semibold text-slate-900">Historial del negocio</h2>
+                            <p class="mt-1 text-sm text-slate-500">Cambios de plan, vencimiento, suspensión y reactivación, con sus motivos.</p>
+                        </div>
+                        <div class="flex shrink-0 flex-wrap gap-3">
+                            <Link :href="route('admin.payments.index', { tenant_id: tenant.id })" class="text-sm font-semibold text-orange-700 hover:text-orange-800">Ver cobranza</Link>
+                            <Link :href="route('admin.audit-logs.index', { tenant_id: tenant.id })" class="text-sm font-semibold text-orange-700 hover:text-orange-800">Ver bitácora completa</Link>
+                        </div>
+                    </div>
+                    <div v-if="lifecycle_history.length" class="divide-y divide-slate-100 rounded-xl border border-slate-200">
+                        <article v-for="entry in lifecycle_history" :key="entry.id" class="flex flex-col gap-2 p-4 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                                <p class="text-sm font-semibold text-slate-800">{{ lifecycleActionLabel(entry.action) }}</p>
+                                <p class="mt-1 text-sm text-slate-600">{{ entry.description }}</p>
+                                <p class="mt-1 text-xs text-slate-400">{{ entry.user?.name ?? 'Sistema' }}</p>
+                            </div>
+                            <time class="shrink-0 text-xs text-slate-400">{{ formatHistoryDate(entry.created_at) }}</time>
+                        </article>
+                    </div>
+                    <div v-else class="rounded-xl border border-dashed border-slate-300 px-5 py-8 text-center text-sm text-slate-500">Aún no hay cambios de ciclo registrados.</div>
+                </section>
             </div>
         </div>
     </AdminLayout>

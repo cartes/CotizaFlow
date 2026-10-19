@@ -12,6 +12,8 @@ const search = ref(props.filters?.search ?? '');
 const sortBy = ref(props.filters?.sort_by ?? 'usage');
 const sortDirection = ref(props.filters?.sort_direction ?? 'desc');
 const perPage = ref(props.filters?.per_page ?? 25);
+const reasonModalTenant = ref(null);
+const changeReason = ref('');
 
 let searchTimeout = null;
 
@@ -70,9 +72,22 @@ const changePerPage = (size) => {
 };
 
 const toggleStatus = (tenant) => {
-    if (confirm(`¿Estás seguro de que quieres cambiar el estado de esta empresa?`)) {
-        router.put(route('admin.tenants.suspend', tenant.id), {}, { preserveScroll: true });
-    }
+    reasonModalTenant.value = tenant;
+    changeReason.value = '';
+};
+
+const confirmStatusChange = () => {
+    if (!reasonModalTenant.value || changeReason.value.trim().length < 5) return;
+
+    router.put(route('admin.tenants.suspend', reasonModalTenant.value.id), {
+        reason: changeReason.value.trim(),
+    }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            reasonModalTenant.value = null;
+            changeReason.value = '';
+        },
+    });
 };
 
 const goToPage = (url) => {
@@ -120,6 +135,19 @@ const getSortLabel = () => {
                     Crear empresa
                 </Link>
             </div>
+        </div>
+
+        <div v-if="reasonModalTenant" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4" @click.self="reasonModalTenant = null">
+            <form class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl" @submit.prevent="confirmStatusChange">
+                <h2 class="text-lg font-semibold text-slate-900">{{ reasonModalTenant.status === 'suspended' ? 'Reactivar empresa' : 'Suspender empresa' }}</h2>
+                <p class="mt-1 text-sm text-slate-500">Registra el motivo para mantener trazabilidad de la cobranza y del ciclo de vida.</p>
+                <label for="status-change-reason" class="mt-5 block text-sm font-medium text-slate-700">Motivo</label>
+                <textarea id="status-change-reason" v-model="changeReason" required minlength="5" maxlength="500" rows="4" class="mt-2 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="Escribe el motivo del cambio" />
+                <div class="mt-5 flex justify-end gap-3">
+                    <button type="button" class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50" @click="reasonModalTenant = null">Cancelar</button>
+                    <button type="submit" :disabled="changeReason.trim().length < 5" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40">Confirmar</button>
+                </div>
+            </form>
         </div>
 
         <!-- Filtros, Buscador y Controles -->

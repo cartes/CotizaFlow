@@ -4,6 +4,7 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 
 const props = defineProps({
     logs: Object,
+    tenant_id: { type: [Number, String], default: null },
 });
 
 const formatDateTime = (dateStr) => {
@@ -33,6 +34,7 @@ const actionBadgeClass = (action) => {
         <div class="mb-8">
             <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Registro de Auditoría</h1>
             <p class="mt-1 text-sm text-slate-500">Historial de acciones realizadas en el sistema.</p>
+            <Link v-if="tenant_id" :href="route('admin.tenants.edit', tenant_id)" class="mt-3 inline-flex text-sm font-semibold text-orange-700 hover:text-orange-800">Volver a la empresa</Link>
         </div>
 
         <div class="flow-root">

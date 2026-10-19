@@ -1,5 +1,6 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { ref } from 'vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { STATUS_CONFIG, PAYMENT_TYPE_LABEL } from '@/constants/payment';
 
@@ -7,7 +8,19 @@ const props = defineProps({
     payments: Object,
     monthly_summary: Array,
     totals: Object,
+    filters: { type: Object, default: () => ({}) },
+    companies: { type: Array, default: () => [] },
 });
+
+const tenantId = ref(props.filters?.tenant_id ?? '');
+const paymentStatus = ref(props.filters?.status ?? '');
+
+const applyFilters = () => {
+    router.get(route('admin.payments.index'), {
+        tenant_id: tenantId.value || undefined,
+        status: paymentStatus.value || undefined,
+    }, { preserveState: true, preserveScroll: true, replace: true });
+};
 
 
 function clp(amount) {
@@ -41,6 +54,28 @@ function monthLabel(ym) {
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Historial de Pagos</h1>
                 <p class="mt-1 text-sm text-slate-500">Desglose de ingresos, comisiones MP e IVA.</p>
             </div>
+        </div>
+
+        <div class="mb-6 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row">
+            <label class="flex-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Empresa
+                <select v-model="tenantId" class="mt-1 block w-full rounded-lg border-slate-200 text-sm font-normal normal-case tracking-normal text-slate-800" @change="applyFilters">
+                    <option value="">Todas las empresas</option>
+                    <option v-for="company in companies" :key="company.id" :value="company.id">{{ company.name }}</option>
+                </select>
+            </label>
+            <label class="flex-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Estado del pago
+                <select v-model="paymentStatus" class="mt-1 block w-full rounded-lg border-slate-200 text-sm font-normal normal-case tracking-normal text-slate-800" @change="applyFilters">
+                    <option value="">Todos los estados</option>
+                    <option value="pending">Pendiente</option>
+                    <option value="approved">Aprobado</option>
+                    <option value="rejected">Rechazado</option>
+                    <option value="cancelled">Cancelado</option>
+                    <option value="refunded">Reembolsado</option>
+                </select>
+            </label>
+            <button type="button" class="self-end rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800" @click="applyFilters">Filtrar</button>
         </div>
 
         <!-- Totales globales -->

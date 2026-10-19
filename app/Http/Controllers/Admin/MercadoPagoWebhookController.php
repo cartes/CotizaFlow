@@ -80,6 +80,7 @@ class MercadoPagoWebhookController extends Controller
                 ->first();
 
             if ($payment) {
+                $previousStatus = $payment->status;
                 // Calcular comisiones desde fee_details de MP
                 $totalMpFee = 0.0;
                 if (! empty($mpPayment->fee_details)) {
@@ -97,6 +98,20 @@ class MercadoPagoWebhookController extends Controller
                     : null;
                 $payment->paid_at = $mpPayment->status === 'approved' ? now() : null;
                 $payment->save();
+
+                if ($previousStatus !== $payment->status) {
+                    $tenant = Tenant::find($tenantId);
+
+                    AuditLog::record(
+                        'payment.status_changed',
+                        "Pago #{$payment->id} de '{$tenant?->name}' cambió de {$previousStatus} a {$payment->status}.",
+                        $tenant,
+                        [
+                            'payment_id' => ['old' => null, 'new' => $payment->id],
+                            'status' => ['old' => $previousStatus, 'new' => $payment->status],
+                        ]
+                    );
+                }
 
                 if ($mpPayment->status === 'approved') {
                     $ends = $payment->billing_period === Payment::BILLING_ANNUAL

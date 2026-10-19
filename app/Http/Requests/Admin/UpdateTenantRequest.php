@@ -45,6 +45,24 @@ class UpdateTenantRequest extends FormRequest
             'domain' => ['required', 'string', 'max:255', Rule::unique('tenants', 'domain')->ignore($tenantId)],
             'plan_id' => ['required', 'exists:plans,id'],
             'status' => ['required', 'in:active,suspended'],
+            'change_reason' => [
+                Rule::requiredIf(function (): bool {
+                    $tenant = $this->route('tenant');
+
+                    if (! $tenant instanceof Tenant) {
+                        return false;
+                    }
+
+                    return (string) $this->input('status') !== (string) $tenant->status
+                        || (string) $this->input('plan_id') !== (string) $tenant->plan_id
+                        || (string) $this->input('subscription_ends_at') !== (string) $tenant->subscription_ends_at?->toDateString();
+                }),
+                'string',
+                'min:5',
+                'max:500',
+            ],
+            'change_reason.required' => 'Indica el motivo para cambiar el estado, plan o vencimiento.',
+            'change_reason.min' => 'El motivo debe tener al menos 5 caracteres.',
             'subscription_ends_at' => ['nullable', 'date'],
             'phone' => ['nullable', 'string', 'max:20'],
             'seo_address' => ['nullable', 'string', 'max:255'],

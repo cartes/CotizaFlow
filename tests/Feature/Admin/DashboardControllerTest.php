@@ -26,7 +26,7 @@ class DashboardControllerTest extends TestCase
 
         Tenant::factory()->create([
             'name' => 'Empresa Anterior',
-            'created_at' => now()->subMonth(),
+            'created_at' => now()->subDays(45),
         ]);
 
         Tenant::factory()->create([
@@ -85,7 +85,7 @@ class DashboardControllerTest extends TestCase
                 ->component('Admin/Dashboard')
                 ->where('stats.companies_total', 3)
                 ->where('stats.companies_active', 2)
-                ->where('stats.companies_new_30d', 3)
+                ->where('stats.companies_new_30d', 2)
                 ->where('stats.trial_requests_resolved_30d', 2)
                 ->where('stats.trial_requests_approved_30d', 1)
                 ->where('stats.conversion_rate_30d', 50)
@@ -104,6 +104,16 @@ class DashboardControllerTest extends TestCase
                 ->component('Admin/Payments/Index')
                 ->has('monthly_summary')
             );
+
+        $this->get(route('admin.payments.index', [
+            'tenant_id' => $activeCompany->id,
+            'status' => Payment::STATUS_PENDING,
+        ]))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('filters.tenant_id', (string) $activeCompany->id)
+                ->where('filters.status', Payment::STATUS_PENDING)
+                ->has('payments.data', 1));
 
         $this->get(route('admin.tenants.index'))
             ->assertOk()

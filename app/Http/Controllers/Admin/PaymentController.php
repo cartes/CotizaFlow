@@ -13,6 +13,7 @@ use App\Models\Tenant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use MercadoPago\Client\Preference\PreferenceClient;
@@ -20,12 +21,26 @@ use MercadoPago\MercadoPagoConfig;
 
 class PaymentController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $filters = $request->validate([
+            'tenant_id' => ['nullable', 'integer', 'exists:tenants,id'],
+            'status' => ['nullable', Rule::in([
+                Payment::STATUS_PENDING,
+                Payment::STATUS_APPROVED,
+                Payment::STATUS_REJECTED,
+                Payment::STATUS_CANCELLED,
+                Payment::STATUS_REFUNDED,
+            ])],
+        ]);
+
         $payments = Payment::query()
             ->with(['tenant:id,name', 'plan:id,name'])
+            ->when($filters['tenant_id'] ?? null, fn ($query, $tenantId) => $query->where('tenant_id', $tenantId))
+            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->latest()
             ->paginate(50)
+            ->withQueryString()
             ->through(fn (Payment $p) => [
                 'id' => $p->id,
                 'tenant' => $p->tenant?->name,
@@ -55,6 +70,7 @@ class PaymentController extends Controller
         $monthlySummary = Payment::query()
             ->where('status', 'approved')
             ->where('paid_at', '>=', now()->subMonths(6))
+            ->when($filters['tenant_id'] ?? null, fn ($query, $tenantId) => $query->where('tenant_id', $tenantId))
             ->select(
                 DB::raw("{$monthExpr} as month"),
                 DB::raw('count(*) as transactions'),
@@ -70,6 +86,7 @@ class PaymentController extends Controller
         // Totales generales
         $totals = Payment::query()
             ->where('status', 'approved')
+            ->when($filters['tenant_id'] ?? null, fn ($query, $tenantId) => $query->where('tenant_id', $tenantId))
             ->selectRaw('sum(amount) as gross, sum(mp_fee_net) as fees_net, sum(mp_fee_vat) as fees_vat, sum(net_amount) as net, count(*) as transactions')
             ->first();
 
@@ -77,6 +94,11 @@ class PaymentController extends Controller
             'payments' => $payments,
             'monthly_summary' => $monthlySummary,
             'totals' => $totals,
+            'companies' => Tenant::query()->orderBy('name')->get(['id', 'name']),
+            'filters' => [
+                'tenant_id' => $filters['tenant_id'] ?? null,
+                'status' => $filters['status'] ?? null,
+            ],
         ]);
     }
 

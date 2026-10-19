@@ -118,11 +118,15 @@ onUnmounted(() => {
                 class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
               >Pagos</Link>
               <Link
+                :href="route('admin.audit-logs.index')"
+                :class="route().current('admin.audit-logs.*') ? 'border-amber-500 text-white' : 'border-transparent text-slate-300 hover:border-slate-300 hover:text-white'"
+                class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
+              >Historial</Link>
+              <Link
                 :href="route('admin.trial-requests.index')"
                 :class="route().current('admin.trial-requests.*') ? 'border-amber-500 text-white' : 'border-transparent text-slate-300 hover:border-slate-300 hover:text-white'"
                 class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
               >Solicitudes</Link>
-            </div>
             </div>
           </div>
           <div class="hidden sm:ml-6 sm:flex sm:items-center">
@@ -230,12 +234,17 @@ onUnmounted(() => {
             @click="showingNavigationDropdown = false"
           >Pagos</Link>
           <Link
+            :href="route('admin.audit-logs.index')"
+            :class="route().current('admin.audit-logs.*') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+            class="block rounded-md px-3 py-2 text-base font-medium transition-colors"
+            @click="showingNavigationDropdown = false"
+          >Historial</Link>
+          <Link
             :href="route('admin.trial-requests.index')"
             :class="route().current('admin.trial-requests.*') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
             class="block rounded-md px-3 py-2 text-base font-medium transition-colors"
             @click="showingNavigationDropdown = false"
           >Solicitudes</Link>
-        </div>
         </div>
 
         <!-- Responsive Settings Options -->

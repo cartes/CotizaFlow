@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\AdminSettingsController;
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\TenantActivityController;
@@ -103,6 +104,7 @@ Route::middleware(['auth', 'verified', IsSuperAdmin::class])
         Route::delete('/trial-requests/{trialRequest}', [AdminTrialRequestController::class, 'destroy'])->name('trial-requests.destroy');
 
         Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
+        Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 
         // Configuración Super Admin (Usuarios, Perfil, Configuraciones Internas)
         Route::get('/configuracion', [AdminSettingsController::class, 'index'])->name('settings');
