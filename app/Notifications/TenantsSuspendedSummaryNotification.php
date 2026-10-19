@@ -27,16 +27,16 @@ class TenantsSuspendedSummaryNotification extends Notification
     {
         $count = $this->tenants->count();
         $mail = (new MailMessage)
-            ->subject("[Taller Flow] {$count} taller(es) suspendido(s) hoy")
+            ->subject("[CotizaFlow] {$count} empresa(s) suspendida(s) hoy")
             ->greeting('Resumen de suspensiones automáticas')
-            ->line("Los siguientes **{$count}** taller(es) fueron suspendidos hoy por suscripción vencida:");
+            ->line("Los siguientes **{$count}** empresa(s) fueron suspendidas hoy por suscripción vencida:");
 
         foreach ($this->tenants as $tenant) {
             $expiryDate = $tenant->subscription_ends_at?->format('d/m/Y') ?? 'desconocida';
             $mail->line("• **{$tenant->name}** — venció el {$expiryDate}");
         }
 
-        return $mail->line('Se notificó al administrador de cada taller por correo electrónico.');
+        return $mail->line('Se notificó al administrador de cada empresa por correo electrónico.');
     }
 
     /** @return array<string, mixed> */

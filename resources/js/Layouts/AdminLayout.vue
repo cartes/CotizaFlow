@@ -101,7 +101,7 @@ onUnmounted(() => {
             <Link :href="route('admin.dashboard')" class="flex items-center gap-3">
               <ApplicationLogo class="h-10 w-10 rounded-xl shadow-sm ring-1 ring-white/10" />
               <div class="flex items-center gap-2 text-2xl font-bold tracking-tight">
-                <span class="text-white">Taller</span>
+                <span class="text-white">Cotiza</span>
                 <span class="text-amber-400">Flow</span>
               </div>
             </Link>
@@ -118,7 +118,7 @@ onUnmounted(() => {
                 :class="route().current('admin.tenants.*') ? 'border-amber-500 text-white' : 'border-transparent text-slate-300 hover:border-slate-300 hover:text-white'"
                 class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
               >
-                Talleres
+                Empresas
               </Link>
               <Link
                 :href="route('admin.analytics.visits')"
@@ -319,7 +319,7 @@ onUnmounted(() => {
             class="block rounded-md px-3 py-2 text-base font-medium transition-colors"
             @click="showingNavigationDropdown = false"
           >
-            Talleres
+            Empresas
           </Link>
           <Link
             :href="route('admin.analytics.visits')"

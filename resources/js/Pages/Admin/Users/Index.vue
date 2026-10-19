@@ -44,7 +44,7 @@ const submitPassword = () => {
         <div class="sm:flex sm:items-center sm:justify-between mb-8">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Usuarios Globales</h1>
-                <p class="mt-1 text-sm text-slate-500">Todos los usuarios del sistema a través de todos los talleres.</p>
+                <p class="mt-1 text-sm text-slate-500">Todos los usuarios del sistema a través de todas las empresas.</p>
             </div>
         </div>
 
@@ -58,7 +58,7 @@ const submitPassword = () => {
                                     <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-6">Usuario</th>
                                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Email</th>
                                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Rol</th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Taller Asociado</th>
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Empresa asociada</th>
                                     <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
                                         <span class="sr-only">Acciones</span>
                                     </th>
@@ -90,7 +90,7 @@ const submitPassword = () => {
                                             {{ user.tenant.name }}
                                         </span>
                                         <span v-else class="text-slate-400 italic">
-                                            Sin Taller (Global)
+                                            Sin empresa (global)
                                         </span>
                                     </td>
                                     <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">

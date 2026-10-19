@@ -100,7 +100,7 @@ class TrialRequestController extends Controller
 
         $admin->notify(new TrialRequestApprovedNotification($trialRequest, $tenant, $validated['admin_password']));
 
-        return back()->with('success', "Solicitud aprobada. Taller \"{$tenant->name}\" creado con acceso trial de 14 días.");
+        return back()->with('success', "Solicitud aprobada. Empresa \"{$tenant->name}\" creada con acceso trial de 14 días.");
     }
 
     public function destroy(TrialRequest $trialRequest): RedirectResponse
@@ -108,7 +108,7 @@ class TrialRequestController extends Controller
         $tenant = $trialRequest->tenant_id ? $trialRequest->tenant : null;
 
         if ($tenant && $tenant->subscription_ends_at?->isFuture()) {
-            return back()->with('error', 'No se puede eliminar un taller con prueba activa.');
+            return back()->with('error', 'No se puede eliminar una empresa con prueba activa.');
         }
 
         $tenantName = $tenant?->name;
@@ -117,7 +117,7 @@ class TrialRequestController extends Controller
         $trialRequest->delete();
 
         $message = $tenantName
-            ? "Eliminado: el taller \"{$tenantName}\" y su usuario han sido borrados definitivamente. El correo queda libre para una nueva solicitud."
+            ? "Eliminada: la empresa \"{$tenantName}\" y su usuario han sido borrados definitivamente. El correo queda libre para una nueva solicitud."
             : 'Solicitud eliminada definitivamente. El correo queda libre para una nueva solicitud.';
 
         return back()->with('success', $message);

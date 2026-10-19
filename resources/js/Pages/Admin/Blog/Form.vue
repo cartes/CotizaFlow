@@ -27,7 +27,7 @@ const form = useForm({
 });
 
 const page = usePage();
-const appUrl = computed(() => page.props.ziggy?.url || 'https://tallerflow.cl');
+const appUrl = computed(() => page.props.ziggy?.url || 'https://cotizaflow.cl');
 const seoTitleLength = computed(() => form.meta_title.length);
 const seoDescLength = computed(() => form.meta_description.length);
 
@@ -144,7 +144,7 @@ const submit = () => {
                             id="title"
                             v-model="form.title"
                             required
-                            placeholder="Ej: 5 Consejos para digitalizar la agenda de tu taller mecánico"
+                            placeholder="Ej: 5 Consejos para digitalizar la gestión comercial de tu pyme"
                             class="mt-2 block w-full rounded-md border-gray-200 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
                         />
                         <div v-if="form.errors.title" class="mt-1 text-sm text-red-600">{{ form.errors.title }}</div>
@@ -333,7 +333,7 @@ const submit = () => {
                         type="text"
                         v-model="form.meta_title"
                         maxlength="70"
-                        placeholder="Ej: 5 Consejos para Digitalizar tu Taller · TallerFlow"
+                        placeholder="Ej: 5 Consejos para gestionar tu pyme · CotizaFlow"
                         class="block w-full rounded-md border-gray-200 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
                     />
                     <p class="mt-1 text-xs text-slate-400">Si lo dejas vacío se usa el título del artículo. Ideal: 50-60 caracteres.</p>

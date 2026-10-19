@@ -43,7 +43,7 @@ class DailyActivityReportNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $tag = ! empty($this->metrics['is_test']) ? '[PRUEBA] ' : '';
-        $subject = "{$tag}[Taller Flow] Informe diario de actividad — {$this->metrics['report_date']}";
+        $subject = "{$tag}[CotizaFlow] Informe diario de actividad — {$this->metrics['report_date']}";
 
         $mail = (new MailMessage)
             ->subject($subject)
@@ -55,9 +55,9 @@ class DailyActivityReportNotification extends Notification
         }
 
         $mail->line('---')
-            ->line('### 🏢 Talleres y Clientes')
-            ->line("**Talleres activos totales:** {$this->metrics['total_active_tenants']}")
-            ->line("**Nuevos talleres registrados hoy:** {$this->metrics['new_tenants_today']}")
+            ->line('### 🏢 Empresas y clientes')
+            ->line("**Empresas activas totales:** {$this->metrics['total_active_tenants']}")
+            ->line("**Nuevas empresas registradas hoy:** {$this->metrics['new_tenants_today']}")
             ->line('---')
             ->line('### 🔧 Operación del Día')
             ->line("**Órdenes de Trabajo (OTs) creadas hoy:** {$this->metrics['work_orders_today']}")
@@ -89,7 +89,7 @@ class DailyActivityReportNotification extends Notification
         }
 
         return $mail->line('---')
-            ->line('Informe generado automáticamente por Taller Flow.');
+            ->line('Informe generado automáticamente por CotizaFlow.');
     }
 
     /**

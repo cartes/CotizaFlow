@@ -27,9 +27,9 @@ class ExpiringSubscriptionsDigestNotification extends Notification
     {
         $count = $this->tenants->count();
         $mail = (new MailMessage)
-            ->subject("[Taller Flow] {$count} suscripción(es) próximas a vencer")
+            ->subject("[CotizaFlow] {$count} suscripción(es) próximas a vencer")
             ->greeting('Alerta de suscripciones')
-            ->line("Los siguientes **{$count}** taller(es) tienen su suscripción próxima a vencer en los próximos 7 días:");
+            ->line("Los siguientes **{$count}** empresa(s) tienen su suscripción próxima a vencer en los próximos 7 días:");
 
         foreach ($this->tenants as $tenant) {
             $daysLeft = (int) now()->diffInDays($tenant->subscription_ends_at, false);

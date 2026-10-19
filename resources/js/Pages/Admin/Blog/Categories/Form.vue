@@ -55,7 +55,7 @@ const submit = () => {
                     id="name"
                     v-model="form.name"
                     required
-                    placeholder="Ej: Consejos para talleres"
+                    placeholder="Ej: Consejos para pymes"
                     class="mt-2 block w-full rounded-md border-gray-200 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
                 />
                 <div v-if="form.errors.name" class="mt-1 text-sm text-red-600">{{ form.errors.name }}</div>

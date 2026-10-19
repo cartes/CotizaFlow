@@ -159,7 +159,7 @@ class TenantController extends Controller
         });
 
         return redirect()->route('admin.tenants.index')
-            ->with('success', "Taller \"{$tenant->name}\" creado correctamente.");
+            ->with('success', "Empresa \"{$tenant->name}\" creada correctamente.");
     }
 
     private function generateUniqueDomain(string $slug): string
@@ -257,7 +257,7 @@ class TenantController extends Controller
                 : null,
         ]);
 
-        return back()->with('success', 'Taller actualizado correctamente.');
+        return back()->with('success', 'Empresa actualizada correctamente.');
     }
 
     public function updateAdmin(Request $request, Tenant $tenant): RedirectResponse
@@ -302,7 +302,7 @@ class TenantController extends Controller
 
         $tenant->update(['status' => $newStatus]);
 
-        return back()->with('success', "Estado del taller actualizado a {$newStatus}.");
+        return back()->with('success', "Estado de la empresa actualizado a {$newStatus}.");
     }
 
     public function sendRenewalOffer(SendRenewalOfferRequest $request, Tenant $tenant): RedirectResponse
@@ -325,8 +325,8 @@ class TenantController extends Controller
 
         $type = ($discountPercent && $discountPercent > 0) ? 'renewal_offer' : 'renewal_reminder';
         $subject = ($discountPercent && $discountPercent > 0)
-            ? "[Taller Flow] ¡Oferta especial! Renueva con {$discountPercent}% de descuento en {$tenant->name}"
-            : "[Taller Flow] Recordatorio de renovación de suscripción — {$tenant->name}";
+            ? "[CotizaFlow] ¡Oferta especial! Renueva con {$discountPercent}% de descuento en {$tenant->name}"
+            : "[CotizaFlow] Recordatorio de renovación de suscripción — {$tenant->name}";
 
         $tracking = EmailTracking::create([
             'tenant_id' => $tenant->id,

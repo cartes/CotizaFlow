@@ -32,13 +32,13 @@ class WeeklyActivityReportNotification extends Notification
         $period = "del {$this->metrics['week_start']} al {$this->metrics['week_end']}";
 
         $mail = (new MailMessage)
-            ->subject('[Taller Flow] Informe semanal de actividad — '.$this->metrics['week_end'])
+            ->subject('[CotizaFlow] Informe semanal de actividad — '.$this->metrics['week_end'])
             ->greeting('Resumen semanal de la plataforma')
             ->line("Este es el informe de actividad correspondiente al período **{$period}**.")
             ->line('---')
-            ->line('### 📊 Talleres')
-            ->line("**Talleres activos totales:** {$this->metrics['total_active_tenants']}")
-            ->line("**Nuevos talleres esta semana:** {$this->metrics['new_tenants']}")
+            ->line('### 📊 Empresas')
+            ->line("**Empresas activas totales:** {$this->metrics['total_active_tenants']}")
+            ->line("**Nuevas empresas esta semana:** {$this->metrics['new_tenants']}")
             ->line('---')
             ->line('### 🧪 Solicitudes de Prueba')
             ->line("**Nuevas solicitudes esta semana:** {$this->metrics['new_trial_requests']}")

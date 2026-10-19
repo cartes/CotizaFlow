@@ -88,7 +88,7 @@ const submit = () => {
                     {{ isEditing ? `Editar Plan: ${plan.name}` : 'Nuevo Plan' }}
                 </h1>
                 <p class="mt-1 text-sm text-slate-500">
-                    {{ isEditing ? 'Modifica los detalles del plan de suscripción.' : 'Crea un nuevo plan de suscripción para los talleres.' }}
+                    {{ isEditing ? 'Modifica los detalles del plan de suscripción.' : 'Crea un nuevo plan de suscripción para las empresas.' }}
                 </p>
             </div>
         </div>
@@ -319,7 +319,7 @@ const submit = () => {
                         <div class="flex items-center justify-between max-w-lg">
                             <div>
                                 <span class="block text-sm font-medium text-gray-700">Plan activo</span>
-                                <span class="text-xs text-gray-400">Los talleres pueden suscribirse a este plan.</span>
+                                <span class="text-xs text-gray-400">Las empresas pueden suscribirse a este plan.</span>
                             </div>
                             <button
                                 type="button"

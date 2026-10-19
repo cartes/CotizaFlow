@@ -70,7 +70,7 @@ const changePerPage = (size) => {
 };
 
 const toggleStatus = (tenant) => {
-    if (confirm(`¿Estás seguro de que quieres cambiar el estado de este taller?`)) {
+    if (confirm(`¿Estás seguro de que quieres cambiar el estado de esta empresa?`)) {
         router.put(route('admin.tenants.suspend', tenant.id), {}, { preserveScroll: true });
     }
 };
@@ -85,7 +85,7 @@ const getSortLabel = () => {
     const labels = {
         usage: 'Mayor Uso / Actividad',
         work_orders_count: 'Órdenes de Trabajo (OTs)',
-        name: 'Nombre de Taller',
+        name: 'Nombre de empresa',
         slug: 'Slug / URL',
         plan: 'Plan',
         users_count: 'Cantidad de Usuarios',
@@ -98,15 +98,15 @@ const getSortLabel = () => {
 </script>
 
 <template>
-    <Head title="Gestión de Talleres" />
+    <Head title="Gestión de empresas" />
 
     <AdminLayout>
         <!-- Header -->
         <div class="sm:flex sm:items-center sm:justify-between mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Gestión de Talleres</h1>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Gestión de empresas</h1>
                 <p class="mt-1 text-sm text-slate-500">
-                    {{ tenants.total }} taller{{ tenants.total !== 1 ? 'es' : '' }} registrado{{ tenants.total !== 1 ? 's' : '' }}.
+                    {{ tenants.total }} empresa{{ tenants.total !== 1 ? 'es' : '' }} registrado{{ tenants.total !== 1 ? 's' : '' }}.
                 </p>
             </div>
             <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
@@ -117,7 +117,7 @@ const getSortLabel = () => {
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                     </svg>
-                    Crear Taller
+                    Crear empresa
                 </Link>
             </div>
         </div>
@@ -176,25 +176,25 @@ const getSortLabel = () => {
                             {{ size }}
                         </button>
                     </div>
-                    <span class="text-xs text-slate-400">talleres</span>
+                    <span class="text-xs text-slate-400">empresas</span>
                 </div>
             </div>
         </div>
 
-        <!-- Tabla de Talleres -->
+        <!-- Tabla de empresas -->
         <div class="flow-root">
             <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-200 text-left">
                     <thead class="bg-slate-50">
                         <tr>
-                            <!-- Nombre de Taller (Columna Bloqueada) -->
+                            <!-- Nombre de empresa (Columna Bloqueada) -->
                             <th scope="col" class="sticky left-0 z-20 bg-slate-50 py-3.5 pl-4 pr-3 text-sm sm:pl-6 min-w-[180px] sm:min-w-[250px] border-r border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] whitespace-nowrap">
                                 <button
                                     @click="handleSort('name')"
                                     type="button"
                                     class="group inline-flex items-center gap-1.5 font-semibold text-slate-900 hover:text-slate-700"
                                 >
-                                    Nombre de Taller
+                                    Nombre de empresa
                                     <span :class="[sortBy === 'name' ? 'text-slate-900' : 'text-slate-400 group-hover:text-slate-600', 'transition-colors']">
                                         <svg v-if="sortBy === 'name' && sortDirection === 'asc'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
@@ -281,7 +281,7 @@ const getSortLabel = () => {
                                     @click="handleSort('usage')"
                                     type="button"
                                     class="group inline-flex items-center gap-1.5 font-semibold text-slate-900 hover:text-slate-700"
-                                    title="Ordenar por actividad global del taller (OTs, Citas, Logins)"
+                                    title="Ordenar por actividad global de la empresa (OTs, Citas, Logins)"
                                 >
                                     Uso / OTs
                                     <span :class="[sortBy === 'usage' || sortBy === 'work_orders_count' ? 'text-amber-700 font-bold' : 'text-slate-400 group-hover:text-slate-600', 'transition-colors']">
@@ -354,7 +354,7 @@ const getSortLabel = () => {
                             <td class="sticky left-0 z-10 bg-white group-hover:bg-slate-50 whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900 sm:pl-6 min-w-[180px] sm:min-w-[250px] border-r border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] transition-colors">
                                 <div class="font-semibold text-slate-900 truncate max-w-[200px] sm:max-w-[260px]" :title="tenant.name">{{ tenant.name }}</div>
                                 <div class="text-xs text-slate-500 font-normal mt-0.5 flex items-center gap-2 flex-wrap">
-                                    <span>RUT: {{ tenant.rut_taller || 'N/D' }}</span>
+                                    <span>Identificación: {{ tenant.rut_taller || 'N/D' }}</span>
                                     <span v-if="tenant.domain" class="text-slate-400 truncate max-w-[140px]" :title="tenant.domain">• {{ tenant.domain }}</span>
                                 </div>
                             </td>
@@ -362,12 +362,12 @@ const getSortLabel = () => {
                                     <!-- Slug / URL -->
                                     <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500">
                                         <div class="flex items-center gap-1.5">
-                                            <code class="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-mono text-slate-700">/taller/{{ tenant.slug }}</code>
+                                            <code class="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-mono text-slate-700">/empresa/{{ tenant.slug }}</code>
                                             <a
-                                                :href="'/taller/' + tenant.slug + '/dashboard'"
+                                                :href="'/empresa/' + tenant.slug + '/inicio'"
                                                 target="_blank"
                                                 class="text-slate-400 hover:text-amber-600 transition-colors p-0.5 rounded hover:bg-slate-100"
-                                                title="Abrir taller en nueva pestaña"
+                                                title="Abrir empresa en nueva pestaña"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -468,9 +468,9 @@ const getSortLabel = () => {
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                             </svg>
-                                            <p class="font-medium text-slate-700">No se encontraron talleres</p>
+                                            <p class="font-medium text-slate-700">No se encontraron empresas</p>
                                             <p class="text-xs text-slate-400 mt-1">
-                                                {{ search ? 'Intenta con otro término de búsqueda o limpia el filtro.' : 'No hay talleres registrados en la plataforma.' }}
+                                                {{ search ? 'Intenta con otro término de búsqueda o limpia el filtro.' : 'No hay empresas registradas en la plataforma.' }}
                                             </p>
                                             <button
                                                 v-if="search"
@@ -493,7 +493,7 @@ const getSortLabel = () => {
             <p class="text-sm text-slate-500">
                 Mostrando <span class="font-semibold text-slate-700">{{ tenants.from || 0 }}</span> a
                 <span class="font-semibold text-slate-700">{{ tenants.to || 0 }}</span> de
-                <span class="font-semibold text-slate-700">{{ tenants.total }}</span> talleres
+                <span class="font-semibold text-slate-700">{{ tenants.total }}</span> empresas
             </p>
 
             <!-- Botones de Paginación -->

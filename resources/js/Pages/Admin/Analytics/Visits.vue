@@ -343,14 +343,14 @@ const deviceSeries = computed(() => (props.report.devices ?? []).map((d) => d.vi
             </div>
         </div>
 
-        <!-- Talleres -->
+        <!-- Empresas -->
         <div class="mt-6 rounded-xl bg-white shadow-sm ring-1 ring-slate-900/5">
             <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
                 <div>
-                    <h2 class="text-sm font-semibold text-slate-900">Tráfico público por taller</h2>
-                    <p class="mt-0.5 text-xs text-slate-500">Landing, checkout y cotizaciones públicas de cada taller, sin importar el ámbito seleccionado.</p>
+                    <h2 class="text-sm font-semibold text-slate-900">Tráfico público por empresa</h2>
+                    <p class="mt-0.5 text-xs text-slate-500">Páginas públicas y cotizaciones de cada empresa, sin importar el ámbito seleccionado.</p>
                 </div>
-                <Link :href="route('admin.tenants.index')" class="text-xs font-semibold text-amber-600 hover:text-amber-800">Ver talleres →</Link>
+                <Link :href="route('admin.tenants.index')" class="text-xs font-semibold text-amber-600 hover:text-amber-800">Ver empresas →</Link>
             </div>
             <ul v-if="report.by_tenant?.length" class="divide-y divide-slate-100">
                 <li v-for="(t, i) in report.by_tenant" :key="t.id" class="flex items-center gap-4 px-6 py-3 hover:bg-slate-50/60">
@@ -358,7 +358,7 @@ const deviceSeries = computed(() => (props.report.devices ?? []).map((d) => d.vi
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2">
                             <Link :href="route('admin.tenants.activity', t.id)" class="truncate text-sm font-medium text-slate-800 hover:text-indigo-600">{{ t.name }}</Link>
-                            <a v-if="t.slug" :href="`/taller/${t.slug}`" target="_blank" rel="noopener" class="shrink-0 font-mono text-[11px] text-slate-400 hover:text-slate-600">/taller/{{ t.slug }}</a>
+                            <a v-if="t.slug" :href="`/empresa/${t.slug}`" target="_blank" rel="noopener" class="shrink-0 font-mono text-[11px] text-slate-400 hover:text-slate-600">/empresa/{{ t.slug }}</a>
                         </div>
                         <div class="mt-1 h-1 w-full max-w-md overflow-hidden rounded-full bg-slate-100">
                             <div class="h-full rounded-full bg-indigo-500" :style="{ width: `${(t.visits / maxTenant) * 100}%` }" />
@@ -376,7 +376,7 @@ const deviceSeries = computed(() => (props.report.devices ?? []).map((d) => d.vi
                     </div>
                 </li>
             </ul>
-            <p v-else class="px-6 py-10 text-center text-sm text-slate-400">Ningún taller recibió visitas públicas en el período.</p>
+            <p v-else class="px-6 py-10 text-center text-sm text-slate-400">Ninguna empresa recibió visitas públicas en el período.</p>
         </div>
 
         <p class="mt-6 text-[11px] text-slate-400">

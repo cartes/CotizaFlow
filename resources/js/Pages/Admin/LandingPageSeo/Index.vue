@@ -22,7 +22,7 @@ const form = useForm({
 const whatsappForm = useForm({
     marketing_whatsapp_enabled: Boolean(props.marketing_whatsapp?.is_enabled),
     marketing_whatsapp_number: props.marketing_whatsapp?.number || '',
-    marketing_whatsapp_message: props.marketing_whatsapp?.message || 'Hola, vi TallerFlow y quiero más información.',
+    marketing_whatsapp_message: props.marketing_whatsapp?.message || 'Hola, vi CotizaFlow y quiero más información.',
 });
 
 const submitWhatsapp = () => {
@@ -175,7 +175,7 @@ const resetPage = (i) => {
                                 v-model="form.pages[i].title"
                                 type="text"
                                 maxlength="160"
-                                placeholder="Ej: TallerFlow · Software para Talleres Mecánicos"
+                                placeholder="Ej: CotizaFlow · Cotizador y mini-CRM para pymes"
                                 class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition"
                             />
                             <!-- Progress bar -->
@@ -242,8 +242,8 @@ const resetPage = (i) => {
                             <div class="flex items-center gap-2 mb-2">
                                 <div class="w-5 h-5 rounded-full bg-slate-200"></div>
                                 <div>
-                                    <p class="text-xs text-slate-600 font-medium leading-none">TallerFlow</p>
-                                    <p class="text-xs text-slate-400 leading-none mt-0.5">tallerflow.cl{{ page.url }}</p>
+                                    <p class="text-xs text-slate-600 font-medium leading-none">CotizaFlow</p>
+                                    <p class="text-xs text-slate-400 leading-none mt-0.5">cotizaflow.cl{{ page.url }}</p>
                                 </div>
                             </div>
                             <p class="text-[#1a0dab] text-lg font-normal leading-tight mb-1 line-clamp-1">
@@ -267,7 +267,7 @@ const resetPage = (i) => {
                                 </div>
                             </div>
                             <div class="p-3 bg-slate-50 border-t border-slate-100">
-                                <p class="text-xs text-slate-400 uppercase font-semibold tracking-wide">tallerflow.cl</p>
+                                <p class="text-xs text-slate-400 uppercase font-semibold tracking-wide">cotizaflow.cl</p>
                                 <p class="text-sm font-semibold text-slate-900 mt-0.5 line-clamp-1">{{ previewTitle(i) || 'Sin título' }}</p>
                                 <p class="text-xs text-slate-500 mt-0.5 line-clamp-2">{{ previewDesc(i) || 'Sin descripción.' }}</p>
                             </div>
@@ -340,7 +340,7 @@ const resetPage = (i) => {
                                 v-model="whatsappForm.marketing_whatsapp_message"
                                 rows="4"
                                 maxlength="300"
-                                placeholder="Hola, vi TallerFlow y quiero más información."
+                                placeholder="Hola, vi CotizaFlow y quiero más información."
                                 class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition resize-none"
                             ></textarea>
                             <p v-if="whatsappForm.errors.marketing_whatsapp_message" class="mt-1 text-sm text-red-600">{{ whatsappForm.errors.marketing_whatsapp_message }}</p>
@@ -361,7 +361,7 @@ const resetPage = (i) => {
                                 </span>
                                 <div class="hidden sm:block">
                                     <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/72">WhatsApp</p>
-                                    <p class="text-sm font-semibold">Habla con TallerFlow</p>
+                                    <p class="text-sm font-semibold">Habla con CotizaFlow</p>
                                     <p class="text-xs text-white/80">{{ whatsappForm.marketing_whatsapp_number || 'Número pendiente' }}</p>
                                 </div>
                             </div>

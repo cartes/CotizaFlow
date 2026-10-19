@@ -39,8 +39,8 @@ class SubscriptionRenewalReminder extends Notification
         $hasDiscount = $this->discountPercent !== null && $this->discountPercent > 0;
 
         $subject = $hasDiscount
-            ? "[Taller Flow] ¡Oferta especial! Renueva con {$this->discountPercent}% de descuento en {$this->tenant->name}"
-            : "[Taller Flow] Tu suscripción vence en {$daysLeft} día(s) — Renueva ahora";
+            ? "[CotizaFlow] ¡Oferta especial! Renueva con {$this->discountPercent}% de descuento en {$this->tenant->name}"
+            : "[CotizaFlow] Tu suscripción vence en {$daysLeft} día(s) — Renueva ahora";
 
         $actionLabel = $hasDiscount
             ? "Aprovechar {$this->discountPercent}% de descuento y renovar"
@@ -49,7 +49,7 @@ class SubscriptionRenewalReminder extends Notification
         $mail = (new MailMessage)
             ->subject($subject)
             ->greeting("Hola, {$notifiable->name}")
-            ->line("La suscripción de tu taller **{$this->tenant->name}** vence el **{$expiryDate}**.");
+            ->line("La suscripción de tu empresa **{$this->tenant->name}** vence el **{$expiryDate}**.");
 
         if ($hasDiscount) {
             $mail->line("¡Queremos que sigas operando sin interrupciones! Por eso, tienes disponible un beneficio exclusivo de **{$this->discountPercent}% de descuento** al renovar tu plan hoy.");
@@ -63,7 +63,7 @@ class SubscriptionRenewalReminder extends Notification
 
         $mail->action($actionLabel, $actionUrl)
             ->line('Si ya realizaste el pago, puedes ignorar este correo.')
-            ->salutation('El equipo de Taller Flow');
+            ->salutation('El equipo de CotizaFlow');
 
         if ($this->trackingToken) {
             $trackingUrl = route('mail.track', ['token' => $this->trackingToken]);

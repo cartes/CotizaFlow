@@ -113,7 +113,7 @@ const setTrialPeriod = (months) => {
 </script>
 
 <template>
-    <Head :title="`Editar Taller: ${tenant.name}`" />
+    <Head :title="`Editar empresa: ${tenant.name}`" />
 
     <AdminLayout>
         <!-- Header -->
@@ -125,7 +125,7 @@ const setTrialPeriod = (months) => {
                     </svg>
                 </Link>
                 <div>
-                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Editar Taller: {{ tenant.name }}</h1>
+                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Editar empresa: {{ tenant.name }}</h1>
                     <p class="mt-1 text-sm text-slate-500">Modifica los detalles globales o gestiona al Administrador de este tenant.</p>
                 </div>
             </div>
@@ -139,7 +139,7 @@ const setTrialPeriod = (months) => {
                         @click="activeTab = 'details'"
                         :class="[activeTab === 'details' ? 'border-orange-500 text-orange-600 font-semibold' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 font-medium', 'whitespace-nowrap border-b-2 py-4 px-1 text-sm transition-colors']"
                     >
-                        Detalles del Taller
+                        Detalles de la empresa
                     </button>
                     <button 
                         @click="activeTab = 'admin'"
@@ -156,7 +156,7 @@ const setTrialPeriod = (months) => {
                     <form @submit.prevent="submitTenant" class="space-y-6 max-w-2xl">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div>
-                                <label for="name" class="block text-sm font-medium text-gray-700">Nombre del Taller</label>
+                                <label for="name" class="block text-sm font-medium text-gray-700">Nombre de la empresa</label>
                                 <input type="text" id="name" v-model="tenantForm.name" class="mt-2 block w-full rounded-md border-gray-200 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
                                 <div v-if="tenantForm.errors.name" class="mt-1 text-sm text-red-600">{{ tenantForm.errors.name }}</div>
                             </div>
@@ -175,7 +175,7 @@ const setTrialPeriod = (months) => {
                             <IdentificationInput
                                 v-model="tenantForm.rut_taller"
                                 :country="tenantForm.country"
-                                :label="`${docLabel} del Taller`"
+                                :label="`${docLabel} de la empresa`"
                                 :placeholder="docPlaceholder"
                                 compact
                                 :error-message="tenantForm.errors.rut_taller"
@@ -189,7 +189,7 @@ const setTrialPeriod = (months) => {
                             <label for="domain" class="block text-sm font-medium text-gray-700">Dominio</label>
                             <div class="relative mt-2 rounded-md shadow-sm">
                                 <span class="text-gray-500 sm:text-sm absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">http://</span>
-                                <input type="text" id="domain" v-model="tenantForm.domain" class="block w-full rounded-md border-gray-200 pl-14 text-gray-900 focus:border-orange-500 focus:ring-orange-500 sm:text-sm" placeholder="mitaller.tallerflow.cl" />
+                                <input type="text" id="domain" v-model="tenantForm.domain" class="block w-full rounded-md border-gray-200 pl-14 text-gray-900 focus:border-orange-500 focus:ring-orange-500 sm:text-sm" placeholder="miempresa.cotizaflow.cl" />
                             </div>
                             <div v-if="tenantForm.errors.domain" class="mt-1 text-sm text-red-600">{{ tenantForm.errors.domain }}</div>
                         </div>
@@ -261,7 +261,7 @@ const setTrialPeriod = (months) => {
                             <div>
                                 <label for="comuna" class="block text-sm font-medium text-gray-700">Comuna</label>
                                 <input type="text" id="comuna" v-model="tenantForm.comuna" class="mt-2 block w-full rounded-md border-gray-200 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" placeholder="Las Condes" />
-                                <p class="mt-1 text-xs text-gray-500">Se usa para el Directorio de Talleres público.</p>
+                                <p class="mt-1 text-xs text-gray-500">Se usa para el directorio público.</p>
                                 <div v-if="tenantForm.errors.comuna" class="mt-1 text-sm text-red-600">{{ tenantForm.errors.comuna }}</div>
                             </div>
                         </div>
@@ -285,7 +285,7 @@ const setTrialPeriod = (months) => {
                                     </svg>
                                 </div>
                                 <div class="ml-3 flex-1 md:flex md:justify-between">
-                                    <p class="text-sm text-blue-700">Este es el usuario principal con permisos de administrador dentro del taller.</p>
+                                    <p class="text-sm text-blue-700">Este es el usuario principal con permisos de administrador dentro de la empresa.</p>
                                 </div>
                             </div>
                         </div>

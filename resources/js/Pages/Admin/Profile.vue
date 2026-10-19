@@ -413,8 +413,8 @@ const hasSetting = (group, key) => group?.[key]?.has_value ?? false;
 
                         <!-- Sub-group: Recordatorios de Inactividad -->
                         <div>
-                            <h3 class="text-sm font-semibold text-slate-900 mb-1">Recordatorio de Inactividad de Talleres (CRON)</h3>
-                            <p class="text-xs text-slate-500 mb-4">Configura las reglas para alertar a los administradores de talleres inactivos.</p>
+                            <h3 class="text-sm font-semibold text-slate-900 mb-1">Recordatorio de inactividad de empresas (CRON)</h3>
+                            <p class="text-xs text-slate-500 mb-4">Configura las reglas para alertar a los administradores de empresas inactivas.</p>
                             <div class="space-y-5 max-w-lg">
                                 <div>
                                     <label for="inactivity_days" class="block text-sm font-medium text-gray-700">Días de inactividad tolerados</label>
@@ -441,7 +441,7 @@ const hasSetting = (group, key) => group?.[key]?.has_value ?? false;
                                         placeholder="7"
                                         class="mt-2 block w-full rounded-md border-gray-200 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
                                     />
-                                    <p class="mt-1 text-xs text-slate-400">Intervalo mínimo de días antes de volver a enviar un correo de inactividad al mismo taller.</p>
+                                    <p class="mt-1 text-xs text-slate-400">Intervalo mínimo de días antes de volver a enviar un correo de inactividad a la misma empresa.</p>
                                     <div v-if="apiForm.errors.inactivity_spam_days" class="mt-1 text-sm text-red-600">{{ apiForm.errors.inactivity_spam_days }}</div>
                                 </div>
                             </div>

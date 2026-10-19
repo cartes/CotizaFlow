@@ -31,7 +31,7 @@ const deletePlan = (plan) => {
         <div class="sm:flex sm:items-center sm:justify-between mb-8">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Planes de Suscripción</h1>
-                <p class="mt-1 text-sm text-slate-500">Administra los planes disponibles para los talleres.</p>
+                <p class="mt-1 text-sm text-slate-500">Administra los planes disponibles para las empresas.</p>
             </div>
             <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                 <Link

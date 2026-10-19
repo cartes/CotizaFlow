@@ -175,7 +175,7 @@ const formatDate = (date) => {
                                         {{ statusLabel[req.status] }}
                                     </span>
                                     <div v-if="req.tenant" class="mt-1">
-                                        <span class="text-xs text-slate-400">Taller: </span>
+                                        <span class="text-xs text-slate-400">Empresa: </span>
                                         <span class="text-xs text-emerald-700 font-medium">{{ req.tenant.name }}</span>
                                     </div>
                                 </td>
@@ -212,7 +212,7 @@ const formatDate = (date) => {
                                         <div class="flex-1 min-w-64">
                                             <p class="text-sm font-semibold text-slate-800 mb-1">Aprobar solicitud de <strong>{{ req.name }}</strong></p>
                                             <p class="text-xs text-slate-500 mb-3">
-                                                Se creará el taller "{{ req.business_name }}" y el usuario administrador con el email {{ req.email }}.
+                                                Se creará la empresa "{{ req.business_name }}" y el usuario administrador con el email {{ req.email }}.
                                                 Se activará un trial de 14 días con plan Básico.
                                             </p>
                                             <label class="block text-xs font-semibold text-slate-700 mb-1">Contraseña provisional del administrador</label>
@@ -280,7 +280,7 @@ const formatDate = (date) => {
                                                 <strong>{{ req.name }}</strong>
                                             </p>
                                             <p v-if="req.tenant" class="text-xs text-rose-700">
-                                                Se borrará el taller "<strong>{{ req.tenant?.name }}</strong>", su usuario ({{ req.email }}) y todos sus datos.
+                                                Se borrará la empresa "<strong>{{ req.tenant?.name }}</strong>", su usuario ({{ req.email }}) y todos sus datos.
                                                 El correo quedará libre para una nueva solicitud de prueba. Esta acción no se puede deshacer.
                                             </p>
                                             <p v-else class="text-xs text-rose-700">

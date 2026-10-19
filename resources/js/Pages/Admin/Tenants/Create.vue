@@ -52,7 +52,7 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Nuevo Taller" />
+    <Head title="Nueva empresa" />
 
     <AdminLayout>
         <!-- Header -->
@@ -66,18 +66,18 @@ const submit = () => {
                 </svg>
             </Link>
             <div>
-                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Crear Nuevo Taller</h1>
-                <p class="mt-1 text-sm text-slate-500">Registra manualmente un nuevo taller y configura su administrador inicial.</p>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Crear Nueva empresa</h1>
+                <p class="mt-1 text-sm text-slate-500">Registra manualmente un nueva empresa y configura su administrador inicial.</p>
             </div>
         </div>
 
         <div class="bg-white shadow-sm ring-1 ring-gray-200 sm:rounded-xl overflow-hidden">
             <form @submit.prevent="submit" class="p-6 sm:p-8 space-y-8">
-                <!-- Sección 1: Detalles del Taller -->
+                <!-- Sección 1: Detalles de la empresa -->
                 <div>
                     <h2 class="text-base font-semibold text-slate-900 mb-6 flex items-center gap-2">
                         <span class="flex h-6 w-6 items-center justify-center rounded-full bg-orange-100 text-orange-600 text-xs font-bold">1</span>
-                        Información del Taller
+                        Información de la empresa
                     </h2>
                     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <div>
@@ -96,13 +96,13 @@ const submit = () => {
                         </div>
 
                         <div>
-                            <label for="name" class="block text-sm font-medium text-gray-700">Nombre del Taller <span class="text-red-500">*</span></label>
+                            <label for="name" class="block text-sm font-medium text-gray-700">Nombre de la empresa <span class="text-red-500">*</span></label>
                             <input
                                 type="text"
                                 id="name"
                                 v-model="form.name"
                                 required
-                                placeholder="Ej: Taller Motors"
+                                placeholder="Ej: Comercial Motors"
                                 class="mt-2 block w-full rounded-md border-gray-200 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
                             />
                             <div v-if="form.errors.name" class="mt-1 text-sm text-red-600">{{ form.errors.name }}</div>
@@ -112,7 +112,7 @@ const submit = () => {
                             <IdentificationInput
                                 v-model="form.rut_taller"
                                 :country="form.country"
-                                :label="`${docLabel} del Taller`"
+                                :label="`${docLabel} de la empresa`"
                                 :placeholder="docPlaceholder"
                                 compact
                                 :error-message="form.errors.rut_taller"
@@ -130,11 +130,11 @@ const submit = () => {
                                     type="text"
                                     id="domain"
                                     v-model="form.domain"
-                                    placeholder="mitaller.tallerflow.cl"
+                                    placeholder="miempresa.cotizaflow.cl"
                                     class="block w-full rounded-md border-gray-200 pl-14 text-gray-900 focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
                                 />
                             </div>
-                            <p class="mt-1 text-xs text-gray-400">Opcional. Si queda vacío, se generará como slug.tallerflow.cl</p>
+                            <p class="mt-1 text-xs text-gray-400">Opcional. Si queda vacío, se generará como slug.cotizaflow.cl</p>
                             <div v-if="form.errors.domain" class="mt-1 text-sm text-red-600">{{ form.errors.domain }}</div>
                         </div>
 
@@ -198,7 +198,7 @@ const submit = () => {
                                 </svg>
                             </div>
                             <div class="ml-3">
-                                <p class="text-sm text-blue-700">Se creará este usuario y se le asignará automáticamente el rol de Administrador en el nuevo taller.</p>
+                                <p class="text-sm text-blue-700">Se creará este usuario y se le asignará automáticamente el rol de Administrador en la nueva empresa.</p>
                             </div>
                         </div>
                     </div>
@@ -224,7 +224,7 @@ const submit = () => {
                                 id="admin_email"
                                 v-model="form.admin_email"
                                 required
-                                placeholder="juan@taller.cl"
+                                placeholder="admin@empresa.cl"
                                 class="mt-2 block w-full rounded-md border-gray-200 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
                             />
                             <div v-if="form.errors.admin_email" class="mt-1 text-sm text-red-600">{{ form.errors.admin_email }}</div>
@@ -258,7 +258,7 @@ const submit = () => {
                         :disabled="form.processing"
                         class="inline-flex justify-center rounded-md border border-transparent bg-orange-500 py-2 px-4 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
                     >
-                        {{ form.processing ? 'Creando...' : 'Crear Taller' }}
+                        {{ form.processing ? 'Creando...' : 'Crear empresa' }}
                     </button>
                 </div>
             </form>

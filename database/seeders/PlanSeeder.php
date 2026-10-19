@@ -16,7 +16,7 @@ class PlanSeeder extends Seeder
             [
                 'name' => TenantPlan::GRATUITO->label(),
                 'slug' => TenantPlan::GRATUITO->value,
-                'description' => 'Para talleres que están comenzando y necesitan operar con lo esencial.',
+                'description' => 'Para empresas que están comenzando y necesitan operar con lo esencial.',
                 'price_monthly' => 0,
                 'price_annual' => 0,
                 'max_users' => TenantPlan::GRATUITO->userLimit(),
@@ -26,7 +26,7 @@ class PlanSeeder extends Seeder
                 'sort_order' => 1,
                 'features' => [
                     'Hasta 2 usuarios',
-                    'Operación base del taller',
+                    'Gestión comercial básica',
                     'Acceso inicial al sistema',
                 ],
                 'feature_keys' => [],
@@ -34,7 +34,7 @@ class PlanSeeder extends Seeder
             [
                 'name' => TenantPlan::BASICO->label(),
                 'slug' => TenantPlan::BASICO->value,
-                'description' => 'Para talleres que quieren ordenar la operación diaria con herramientas base.',
+                'description' => 'Para empresas que quieren ordenar su gestión diaria con herramientas base.',
                 'price_monthly' => 19990,
                 'price_annual' => 199900,
                 'max_users' => TenantPlan::BASICO->userLimit(),
@@ -53,7 +53,7 @@ class PlanSeeder extends Seeder
             [
                 'name' => TenantPlan::PROFESIONAL->label(),
                 'slug' => TenantPlan::PROFESIONAL->value,
-                'description' => 'El plan más popular para talleres en crecimiento.',
+                'description' => 'El plan más popular para empresas en crecimiento.',
                 'price_monthly' => 39990,
                 'price_annual' => 399900,
                 'max_users' => TenantPlan::PROFESIONAL->userLimit(),
@@ -74,7 +74,7 @@ class PlanSeeder extends Seeder
             [
                 'name' => TenantPlan::EMPRESA->label(),
                 'slug' => TenantPlan::EMPRESA->value,
-                'description' => 'Para talleres de alto volumen o cadenas.',
+                'description' => 'Para empresas con mayor volumen de cotizaciones.',
                 'price_monthly' => 79990,
                 'price_annual' => 799900,
                 'max_users' => TenantPlan::EMPRESA->userLimit(),

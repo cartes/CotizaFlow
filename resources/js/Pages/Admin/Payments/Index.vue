@@ -117,7 +117,7 @@ function monthLabel(ym) {
                     <thead class="bg-slate-50 border-b border-slate-100">
                         <tr>
                             <th class="px-4 py-3 text-left font-medium text-slate-500 whitespace-nowrap">Fecha</th>
-                            <th class="px-4 py-3 text-left font-medium text-slate-500">Taller</th>
+                            <th class="px-4 py-3 text-left font-medium text-slate-500">Empresa</th>
                             <th class="px-4 py-3 text-left font-medium text-slate-500">Plan</th>
                             <th class="px-4 py-3 text-left font-medium text-slate-500">Medio</th>
                             <th class="px-4 py-3 text-right font-medium text-slate-500">Bruto</th>

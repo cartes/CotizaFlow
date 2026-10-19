@@ -120,7 +120,7 @@ const otStatusLabel = {
     esperando_repuestos: 'Esp. Repuestos',
     control_calidad: 'Control Calidad',
     listo: 'Listo',
-    taller: 'Taller',
+    empresa: 'Empresa',
     aviso_cliente: 'Aviso Cliente',
 };
 
@@ -144,7 +144,7 @@ const statusBadge = {
         <!-- Encabezado -->
         <div class="mb-6">
             <div class="flex items-center gap-2 text-sm text-slate-500 mb-2">
-                <Link :href="route('admin.tenants.index')" class="hover:text-slate-800 transition-colors">Talleres</Link>
+                <Link :href="route('admin.tenants.index')" class="hover:text-slate-800 transition-colors">Empresas</Link>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
@@ -163,7 +163,7 @@ const statusBadge = {
             </div>
             <p class="mt-1 text-sm text-slate-500">
                 <span class="font-mono">{{ tenant.domain }}</span>
-                <span v-if="tenant.rut_taller" class="ml-3 text-slate-400">RUT: {{ tenant.rut_taller }}</span>
+                <span v-if="tenant.rut_taller" class="ml-3 text-slate-400">Identificación: {{ tenant.rut_taller }}</span>
                 <span v-if="tenant.subscription_ends_at" class="ml-3 text-slate-400">Suscripción: {{ formatDate(tenant.subscription_ends_at) }}</span>
             </p>
         </div>
